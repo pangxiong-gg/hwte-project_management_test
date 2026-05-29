@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      String   @default("DEVELOPER")
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdRequirements Requirement[] @relation("RequirementCreator")
+  assignedTasks       Task[]        @relation("TaskAssignee")
+  createdBugs         Bug[]         @relation("BugCreator")
+  assignedBugs        Bug[]         @relation("BugAssignee")
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  description String?
+  status      String   @default("PLANNING")
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  requirements Requirement[]
+  tasks        Task[]
+  testCases    TestCase[]
+  bugs         Bug[]
+}
+
+model Requirement {
+  id          String   @id @default(uuid())
+  projectId   String
+  reqCode     String
+  title       String
+  description String?
+  priority    String   @default("P2")
+  status      String   @default("DRAFT")
+  type        String   @default("FUNCTIONAL")
+  createdById String
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy User    @relation("RequirementCreator", fields: [createdById], references: [id])
+  tasks     Task[]
+  bugs      Bug[]
+  testCases TestCase[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, reqCode])
+}
+
+model Task {
+  id            String    @id @default(uuid())
+  projectId     String
+  taskCode      String
+  title         String
+  description   String?
+  type          String    @default("DEVELOPMENT")
+  status        String    @default("TODO")
+  priority      String    @default("P2")
+  requirementId String?
+  assigneeId    String?
+
+  project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  requirement   Requirement?  @relation(fields: [requirementId], references: [id])
+  assignee      User?         @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  bugs          Bug[]
+
+  plannedHours  Float?
+  actualHours   Float?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([projectId, taskCode])
+}
+
+model TestCase {
+  id             String   @id @default(uuid())
+  projectId      String
+  tcCode         String
+  title          String
+  precondition   String?
+  steps          String
+  expectedResult String
+  requirementId  String?
+
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  requirement Requirement?  @relation(fields: [requirementId], references: [id])
+  executions  TestExecution[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, tcCode])
+}
+
+model TestExecution {
+  id           String   @id @default(uuid())
+  testCaseId   String
+  result       String
+  actualResult String?
+  executedBy   String
+  executedAt   DateTime @default(now())
+  bugId        String? @unique
+
+  testCase TestCase @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
+  bug      Bug?     @relation(fields: [bugId], references: [id])
+}
+
+model Bug {
+  id            String   @id @default(uuid())
+  projectId     String
+  bugCode       String
+  title         String
+  description   String
+  severity      String   @default("MEDIUM")
+  priority      String   @default("P2")
+  status        String   @default("NEW")
+  requirementId String?
+  taskId        String?
+  createdById   String
+  assigneeId    String?
+
+  project       Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  requirement   Requirement?  @relation(fields: [requirementId], references: [id])
+  task          Task?         @relation(fields: [taskId], references: [id])
+  createdBy     User          @relation("BugCreator", fields: [createdById], references: [id])
+  assignee      User?         @relation("BugAssignee", fields: [assigneeId], references: [id])
+  testExecution TestExecution?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, bugCode])
+}
