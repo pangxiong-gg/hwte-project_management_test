@@ -7,7 +7,7 @@
       :width="200"
       show-trigger
     >
-      <div class="logo">PM</div>
+      <div class="logo">數位化專案管理系統</div>
       <n-menu
         :options="menuOptions"
         :collapsed-width="64"
@@ -18,10 +18,7 @@
 
     <n-layout>
       <n-layout-header bordered class="header">
-        <div class="header-left">
-          <span>{{ authStore.user?.name }}</span>
-          <n-tag size="small" type="info">{{ authStore.user?.role }}</n-tag>
-        </div>
+        <div class="header-left"></div>
         <div class="header-right">
           <button class="notification-btn">
             <span style="font-size: 18px;">&#128276;</span>
@@ -49,7 +46,7 @@ import { h } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   NLayout, NLayoutSider, NLayoutHeader, NLayoutContent,
-  NMenu, NTag,
+  NMenu,
 } from 'naive-ui';
 import { useAuthStore } from '../stores/auth';
 
@@ -57,7 +54,7 @@ const router = useRouter();
 const authStore = useAuthStore();
 
 function renderIcon(icon: string) {
-  return () => h('span', { style: 'font-size: 18px;' }, icon);
+  return () => h('span', { style: 'font-size: 18px;', innerHTML: icon });
 }
 
 const menuOptions = [
