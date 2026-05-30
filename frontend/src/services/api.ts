@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { LoginResponse, Project, Requirement, Task, Bug } from '../types';
+import type { LoginResponse, Project, ProjectPhase, Requirement, Task, Bug, User } from '../types';
 
 const api = axios.create({
   baseURL: '/api',
@@ -37,6 +37,15 @@ export const projectApi = {
   create: (data: Partial<Project>) => api.post<Project>('/projects', data),
 };
 
+export const phaseApi = {
+  getAll: (projectId: string) =>
+    api.get<ProjectPhase[]>(`/projects/${projectId}/phases`),
+  getCurrent: (projectId: string) =>
+    api.get<ProjectPhase>(`/projects/${projectId}/phases/current`),
+  advance: (projectId: string, phaseId: string) =>
+    api.post<{ phases: ProjectPhase[]; message: string }>(`/projects/${projectId}/phases/${phaseId}/advance`),
+};
+
 export const requirementApi = {
   getAll: (projectId: string) =>
     api.get<Requirement[]>(`/projects/${projectId}/requirements`),
@@ -62,6 +71,10 @@ export const bugApi = {
     api.post<Bug>(`/projects/${projectId}/bugs`, data),
   update: (projectId: string, id: string, data: Partial<Bug>) =>
     api.put<Bug>(`/projects/${projectId}/bugs/${id}`, data),
+};
+
+export const userApi = {
+  getAll: () => api.get<User[]>('/users'),
 };
 
 export default api;

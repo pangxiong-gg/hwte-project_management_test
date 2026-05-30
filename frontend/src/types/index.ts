@@ -11,13 +11,29 @@ export interface Project {
   name: string;
   description?: string;
   status: string;
+  mode: string;
   startDate?: string;
   endDate?: string;
   createdAt: string;
+  phases?: ProjectPhase[];
   _count?: {
     requirements: number;
     tasks: number;
     bugs: number;
+  };
+}
+
+export interface ProjectPhase {
+  id: string;
+  projectId: string;
+  name: string;
+  order: number;
+  status: string;
+  startedAt?: string;
+  completedAt?: string;
+  allowedTaskTypes?: string;
+  _count?: {
+    tasks: number;
   };
 }
 
@@ -50,8 +66,10 @@ export interface Task {
   priority: string;
   requirementId?: string;
   assigneeId?: string;
+  phaseId?: string;
   assignee?: { id: string; name: string };
   requirement?: { id: string; reqCode: string; title: string };
+  phase?: { id: string; name: string };
   plannedHours?: number;
   actualHours?: number;
   createdAt: string;
