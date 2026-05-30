@@ -111,7 +111,7 @@ function columnTasks(columnKey: string): Task[] {
   return props.tasks.filter((t) => (t.status || 'TODO') === columnKey);
 }
 
-function priorityType(priority: string): string {
+function priorityType(priority: string): any {
   const map: Record<string, string> = {
     P0: 'error',
     P1: 'warning',
