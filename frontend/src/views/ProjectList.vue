@@ -19,6 +19,9 @@
         <n-form-item label="專案名稱" path="name">
           <n-input v-model:value="form.name" placeholder="請輸入專案名稱" />
         </n-form-item>
+        <n-form-item label="專案模式" path="mode">
+          <n-select v-model:value="form.mode" :options="modeOptions" />
+        </n-form-item>
         <n-form-item label="描述" path="description">
           <n-input v-model:value="form.description" type="textarea" placeholder="請輸入專案描述" />
         </n-form-item>
@@ -34,10 +37,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, h } from 'vue';
+import { ref, h, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMessage } from 'naive-ui';
-import { NButton, NH2, NDataTable, NModal, NForm, NFormItem, NInput, NSpace } from 'naive-ui';
+import { NButton, NH2, NDataTable, NModal, NForm, NFormItem, NInput, NSpace, NSelect, NTag } from 'naive-ui';
 import type { DataTableColumns } from 'naive-ui';
 import { useProjectStore } from '../stores/project';
 import { projectApi } from '../services/api';
@@ -54,11 +57,19 @@ const form = ref({
   code: '',
   name: '',
   description: '',
+  mode: 'HYBRID',
 });
+
+const modeOptions = [
+  { label: '瀑布式', value: 'WATERFALL' },
+  { label: '敏捷式', value: 'AGILE' },
+  { label: '混合型', value: 'HYBRID' },
+];
 
 const rules = {
   code: { required: true, message: '請輸入專案代碼' },
   name: { required: true, message: '請輸入專案名稱' },
+  mode: { required: true, message: '請選擇專案模式' },
 };
 
 async function handleSubmit() {
@@ -68,7 +79,7 @@ async function handleSubmit() {
     await projectApi.create(form.value);
     message.success('專案建立成功');
     showModal.value = false;
-    form.value = { code: '', name: '', description: '' };
+    form.value = { code: '', name: '', description: '', mode: 'HYBRID' };
     await projectStore.fetchProjects();
   } catch (error: any) {
     if (error?.response?.data?.error) {
@@ -79,9 +90,27 @@ async function handleSubmit() {
   }
 }
 
+function modeTag(mode: string) {
+  const map: Record<string, { text: string; color: string; bg: string }> = {
+    WATERFALL: { text: '瀑布式', color: '#3b82f6', bg: '#3b82f620' },
+    AGILE: { text: '敏捷式', color: '#10b981', bg: '#10b98120' },
+    HYBRID: { text: '混合型', color: '#8b5cf6', bg: '#8b5cf620' },
+  };
+  return map[mode] || { text: mode, color: '#64748b', bg: '#64748b20' };
+}
+
 const columns: DataTableColumns<Project> = [
   { title: '代碼', key: 'code' },
   { title: '名稱', key: 'name' },
+  {
+    title: '模式',
+    key: 'mode',
+    width: 100,
+    render: (row) => {
+      const m = modeTag(row.mode);
+      return h(NTag, { size: 'small', style: { background: m.bg, color: m.color, borderColor: m.color + '40' } }, { default: () => m.text });
+    },
+  },
   {
     title: '狀態',
     key: 'status',
@@ -121,4 +150,8 @@ const columns: DataTableColumns<Project> = [
       ),
   },
 ];
+
+onMounted(() => {
+  projectStore.fetchProjects();
+});
 </script>
