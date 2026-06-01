@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { LoginResponse, Project, ProjectPhase, Requirement, Task, Bug, User, Notification, RequirementChange, TestCase, TestExecution } from '../types';
+import type { LoginResponse, Project, ProjectPhase, Requirement, Task, Bug, User, Notification, RequirementChange, TestCase, TestExecution, ProjectProgress, TeamMemberEfficiency, BugTrends, ExportData } from '../types';
 
 const api = axios.create({
   baseURL: '/api',
@@ -109,6 +109,16 @@ export const testCaseApi = {
 export const requirementChangeApi = {
   getAll: (projectId: string, requirementId: string) =>
     api.get<RequirementChange[]>(`/projects/${projectId}/requirements/${requirementId}/changes`),
+};
+
+export const reportApi = {
+  getProjectProgress: () => api.get<{ projects: ProjectProgress[] }>('/reports/project-progress'),
+  getTeamEfficiency: () => api.get<{ members: TeamMemberEfficiency[] }>('/reports/team-efficiency'),
+  getBugTrends: (days?: number) => api.get<BugTrends>(`/reports/bug-trends?days=${days || 30}`),
+  exportReport: (report: string, format: 'csv' | 'excel') =>
+    format === 'csv'
+      ? api.get(`/reports/export?report=${report}&format=csv`, { responseType: 'blob' })
+      : api.get<ExportData>(`/reports/export?report=${report}&format=excel`),
 };
 
 export default api;
