@@ -3,6 +3,8 @@ export interface User {
   email: string;
   name: string;
   role: string;
+  status?: string;
+  createdAt?: string;
 }
 
 export interface Project {
@@ -72,6 +74,9 @@ export interface Task {
   phase?: { id: string; name: string };
   plannedHours?: number;
   actualHours?: number;
+  gitBranch?: string;
+  gitCommit?: string;
+  gitPr?: string;
   createdAt: string;
 }
 
@@ -96,4 +101,55 @@ export interface Bug {
 export interface LoginResponse {
   token: string;
   user: User;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: string;
+  title: string;
+  content?: string;
+  relatedType?: string;
+  relatedId?: string;
+  projectId?: string;
+  isRead: boolean;
+  readAt?: string;
+  createdAt: string;
+}
+
+export interface TestCase {
+  id: string;
+  projectId: string;
+  tcCode: string;
+  title: string;
+  precondition?: string;
+  steps: string;
+  expectedResult: string;
+  requirementId?: string;
+  requirement?: { id: string; reqCode: string; title: string };
+  executions?: TestExecution[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TestExecution {
+  id: string;
+  testCaseId: string;
+  result: 'PASSED' | 'FAILED' | 'SKIPPED' | 'BLOCKED';
+  actualResult?: string;
+  executedBy: string;
+  executedAt: string;
+  bugId?: string;
+  bug?: { id: string; bugCode: string; title: string };
+}
+
+export interface RequirementChange {
+  id: string;
+  requirementId: string;
+  changedById: string;
+  changeType: string;
+  oldValue?: string;
+  newValue?: string;
+  createdAt: string;
+  changedBy?: { id: string; name: string };
 }

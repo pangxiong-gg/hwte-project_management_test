@@ -7,6 +7,8 @@ import taskRoutes from './routes/taskRoutes.js';
 import bugRoutes from './routes/bugRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import phaseRoutes from './routes/phaseRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import testCaseRoutes from './routes/testCaseRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,7 +28,9 @@ app.use('/api/projects/:projectId/phases', phaseRoutes);
 app.use('/api/projects/:projectId/requirements', requirementRoutes);
 app.use('/api/projects/:projectId/tasks', taskRoutes);
 app.use('/api/projects/:projectId/bugs', bugRoutes);
+app.use('/api/projects/:projectId/test-cases', testCaseRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

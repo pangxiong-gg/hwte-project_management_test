@@ -28,23 +28,59 @@
         >
           <div class="kanban-card-header">
             <span class="kanban-card-code">{{ task.taskCode }}</span>
-            <n-tag
-              size="tiny"
-              :type="priorityType(task.priority)"
-              :style="{ fontSize: '10px' }"
-            >
-              {{ task.priority }}
-            </n-tag>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <n-tag
+                size="tiny"
+                :type="priorityType(task.priority)"
+                :style="{ fontSize: '10px' }"
+              >
+                {{ task.priority }}
+              </n-tag>
+              <span
+                v-if="canEditGit"
+                class="kanban-card-edit"
+                @click.stop="emit('edit-git', task.id)"
+                title="編輯 Git 資訊"
+              >
+                &#9998;
+              </span>
+            </div>
           </div>
           <div class="kanban-card-title">{{ task.title }}</div>
           <div v-if="task.phase?.name" class="kanban-card-phase">
             {{ task.phase.name }}
           </div>
+          <div v-if="task.gitBranch || task.gitCommit || task.gitPr" class="kanban-card-git">
+            <span v-if="task.gitBranch" class="git-branch">&#128206; {{ task.gitBranch }}</span>
+            <span v-if="task.gitCommit" class="git-commit" :title="task.gitCommit">{{ task.gitCommit.slice(0, 7) }}</span>
+            <span v-if="task.gitPr" class="git-pr">PR#{{ task.gitPr }}</span>
+          </div>
           <div class="kanban-card-footer">
-            <span v-if="task.assignee" class="kanban-card-assignee">
-              {{ task.assignee.name }}
-            </span>
-            <span v-else class="kanban-card-unassigned">未指派</span>
+            <template v-if="canAssign && assigningTaskId === task.id">
+              <n-select
+                size="tiny"
+                :value="task.assigneeId || null"
+                :options="[{ label: '未指派', value: undefined }, ...(users || []).map((u) => ({ label: u.name, value: u.id }))]"
+                @update:value="(v: string | null) => emitAssign(task.id, v)"
+                style="width: 100px;"
+              />
+            </template>
+            <template v-else>
+              <span
+                v-if="task.assignee"
+                :class="canAssign ? 'kanban-card-assignee' : 'kanban-card-assignee-readonly'"
+                @click.stop="canAssign ? startAssign(task.id) : null"
+              >
+                {{ task.assignee.name }}
+              </span>
+              <span
+                v-else
+                :class="canAssign ? 'kanban-card-unassigned' : 'kanban-card-unassigned-readonly'"
+                @click.stop="canAssign ? startAssign(task.id) : null"
+              >
+                未指派
+              </span>
+            </template>
             <span v-if="task.plannedHours" class="kanban-card-hours">
               {{ task.plannedHours }}h
             </span>
@@ -60,19 +96,35 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { NTag } from 'naive-ui';
+import { NTag, NSelect } from 'naive-ui';
 import type { Task, ProjectPhase } from '../types';
 
 interface Props {
   tasks: Task[];
   mode?: string;
   phases?: ProjectPhase[];
+  users?: { id: string; name: string }[];
+  userRole?: string;
 }
 
 const props = defineProps<Props>();
+
+const canEditGit = computed(() => {
+  const allowed = ['ADMIN', 'PROJECT_MANAGER', 'DEVELOPER'];
+  return allowed.includes(props.userRole || '');
+});
+
+const canAssign = computed(() => {
+  const allowed = ['ADMIN', 'PROJECT_MANAGER'];
+  return allowed.includes(props.userRole || '');
+});
 const emit = defineEmits<{
   (e: 'update-status', taskId: string, newStatus: string): void;
+  (e: 'assign', taskId: string, assigneeId: string | null): void;
+  (e: 'edit-git', taskId: string): void;
 }>();
+
+const assigningTaskId = ref<string | null>(null);
 
 const dragOverColumn = ref<string | null>(null);
 const draggedTask = ref<Task | null>(null);
@@ -147,6 +199,15 @@ function handleDrop(key: string) {
     }
   }
   draggedTask.value = null;
+}
+
+function startAssign(taskId: string) {
+  assigningTaskId.value = taskId;
+}
+
+function emitAssign(taskId: string, assigneeId: string | null) {
+  assigningTaskId.value = null;
+  emit('assign', taskId, assigneeId);
 }
 </script>
 
@@ -229,6 +290,22 @@ function handleDrop(key: string) {
   font-family: monospace;
 }
 
+.kanban-card-edit {
+  font-size: 12px;
+  color: #94a3b8;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.kanban-card:hover .kanban-card-edit {
+  opacity: 1;
+}
+
+.kanban-card-edit:hover {
+  color: #3b82f6;
+}
+
 .kanban-card-title {
   font-size: 13px;
   color: #1e293b;
@@ -264,11 +341,54 @@ function handleDrop(key: string) {
   font-style: italic;
 }
 
+.kanban-card-assignee-readonly {
+  color: #64748b;
+}
+
+.kanban-card-unassigned-readonly {
+  color: #cbd5e1;
+  font-style: italic;
+}
+
 .kanban-card-hours {
   color: #64748b;
   background: #f1f5f9;
   padding: 2px 6px;
   border-radius: 4px;
+}
+
+.kanban-card-git {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.git-branch {
+  font-size: 10px;
+  color: #3b82f6;
+  background: #3b82f610;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.git-commit {
+  font-size: 10px;
+  color: #8b5cf6;
+  background: #8b5cf610;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.git-pr {
+  font-size: 10px;
+  color: #10b981;
+  background: #10b98110;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: monospace;
 }
 
 .kanban-empty {

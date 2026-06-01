@@ -24,17 +24,30 @@ const router = createRouter({
           name: 'ProjectDetail',
           component: () => import('../views/ProjectDetail.vue'),
         },
+        {
+          path: 'profile',
+          name: 'Profile',
+          component: () => import('../views/Profile.vue'),
+        },
+        {
+          path: 'users',
+          name: 'UserManagement',
+          component: () => import('../views/UserManagement.vue'),
+          meta: { requiresAdmin: true },
+        },
       ],
     },
   ],
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const authStore = useAuthStore();
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/login');
   } else if (to.path === '/login' && authStore.isAuthenticated) {
+    next('/');
+  } else if (to.meta.requiresAdmin && authStore.user?.role !== 'ADMIN') {
     next('/');
   } else {
     next();
