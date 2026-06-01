@@ -130,6 +130,25 @@
           />
         </div>
       </n-tab-pane>
+
+      <!-- 文件 Tab -->
+      <n-tab-pane name="documents" tab="文件">
+        <div style="margin-bottom: 16px;">
+          <n-upload
+            :show-file-list="false"
+            :custom-request="handleCustomUpload"
+            accept="*/*"
+          >
+            <n-button type="primary" :loading="uploadingDoc">上傳文件</n-button>
+          </n-upload>
+        </div>
+        <n-data-table
+          :columns="documentColumns"
+          :data="documents"
+          :loading="loadingDocs"
+          :pagination="{ pageSize: 10 }"
+        />
+      </n-tab-pane>
     </n-tabs>
 
     <!-- 需求變更歷史 Modal -->
@@ -355,10 +374,10 @@
 import { ref, computed, onMounted, h } from 'vue';
 import { useRoute } from 'vue-router';
 import { useMessage } from 'naive-ui';
-import { NTag, NButton, NSpace, NAlert, NSelect, NTimeline, NTimelineItem } from 'naive-ui';
+import { NTag, NButton, NSpace, NAlert, NSelect, NTimeline, NTimelineItem, NUpload } from 'naive-ui';
 import type { DataTableColumns } from 'naive-ui';
-import { projectApi, phaseApi, requirementApi, taskApi, bugApi, userApi, requirementChangeApi, testCaseApi, cicdApi } from '../services/api';
-import type { Project, ProjectPhase, Requirement, Task, Bug, User, RequirementChange, TestCase, GitHubRun } from '../types';
+import { projectApi, phaseApi, requirementApi, taskApi, bugApi, userApi, requirementChangeApi, testCaseApi, cicdApi, documentApi } from '../services/api';
+import type { Project, ProjectPhase, Requirement, Task, Bug, User, RequirementChange, TestCase, GitHubRun, Document } from '../types';
 import { useAuthStore } from '../stores/auth';
 import { canCreateRequirement, canCreateTask, canCreateBug, canManageTestCase, isAdminOrPM } from '../utils/permissions';
 import TaskBoard from '../components/TaskBoard.vue';
@@ -375,6 +394,7 @@ const tasks = ref<Task[]>([]);
 const bugs = ref<Bug[]>([]);
 const users = ref<User[]>([]);
 const testCases = ref<TestCase[]>([]);
+const documents = ref<Document[]>([]);
 const requirementChanges = ref<RequirementChange[]>([]);
 const selectedRequirementId = ref<string>('');
 const activeTab = ref('requirements');
@@ -385,6 +405,10 @@ const advancing = ref(false);
 const runs = ref<GitHubRun[]>([]);
 const loadingCicd = ref(false);
 const githubRepoInput = ref('');
+
+// Documents
+const loadingDocs = ref(false);
+const uploadingDoc = ref(false);
 
 // Modals
 const showReqModal = ref(false);
@@ -789,6 +813,48 @@ const testCaseColumns: DataTableColumns<TestCase> = [
   },
 ];
 
+const documentColumns: DataTableColumns<Document> = [
+  { title: '文件名', key: 'originalName' },
+  {
+    title: '大小',
+    key: 'size',
+    width: 100,
+    render: (row) => formatFileSize(row.size),
+  },
+  {
+    title: '上傳者',
+    key: 'uploadedBy',
+    width: 120,
+    render: (row) => row.uploadedBy?.name || '-',
+  },
+  {
+    title: '上傳時間',
+    key: 'createdAt',
+    width: 140,
+    render: (row) => formatDate(row.createdAt),
+  },
+  {
+    title: '操作',
+    key: 'actions',
+    width: 140,
+    render: (row) => {
+      const canDeleteDoc = isAdminOrPMComputed.value || row.uploadedById === authStore.user?.id;
+      return h(NSpace, null, {
+        default: () => [
+          h(NButton, { size: 'tiny', type: 'primary', onClick: () => handleDownloadDocument(row.id, row.originalName) }, { default: () => '下載' }),
+          canDeleteDoc ? h(NButton, { size: 'tiny', type: 'error', text: true, onClick: () => handleDeleteDocument(row.id) }, { default: () => '刪除' }) : null,
+        ],
+      });
+    },
+  },
+];
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
 // 載入資料
 async function loadData() {
   try {
@@ -808,7 +874,7 @@ async function loadData() {
     bugs.value = bugRes.data;
     users.value = userRes.data;
     testCases.value = tcRes.data;
-    await loadCicd();
+    await Promise.all([loadCicd(), loadDocuments()]);
   } catch (error) {
     console.error('Failed to load project details:', error);
     message.error('載入專案資料失敗');
@@ -825,6 +891,84 @@ async function loadCicd() {
     console.error('Failed to load CI/CD data:', error);
   } finally {
     loadingCicd.value = false;
+  }
+}
+
+// 載入文件
+async function loadDocuments() {
+  try {
+    loadingDocs.value = true;
+    const res = await documentApi.getAll(projectId);
+    documents.value = res.data;
+  } catch (error: any) {
+    console.error('Failed to load documents:', error);
+  } finally {
+    loadingDocs.value = false;
+  }
+}
+
+// 上傳文件
+async function handleCustomUpload({ file, onFinish, onError }: any) {
+  try {
+    uploadingDoc.value = true;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const base64 = (e.target?.result as string).split(',')[1];
+        await documentApi.upload(projectId, {
+          filename: file.name,
+          content: base64,
+          mimeType: file.type || 'application/octet-stream',
+          size: file.file?.size || 0,
+        });
+        message.success('文件上傳成功');
+        await loadDocuments();
+        onFinish();
+      } catch (error: any) {
+        message.error(error?.response?.data?.error || '上傳失敗');
+        onError();
+      } finally {
+        uploadingDoc.value = false;
+      }
+    };
+    reader.onerror = () => {
+      message.error('讀取文件失敗');
+      uploadingDoc.value = false;
+      onError();
+    };
+    reader.readAsDataURL(file.file);
+  } catch (error: any) {
+    uploadingDoc.value = false;
+    onError();
+  }
+}
+
+// 下載文件
+async function handleDownloadDocument(id: string, originalName: string) {
+  try {
+    const res = await documentApi.download(projectId, id);
+    const blob = new Blob([res.data]);
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = originalName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  } catch (error: any) {
+    message.error(error?.response?.data?.error || '下載失敗');
+  }
+}
+
+// 刪除文件
+async function handleDeleteDocument(id: string) {
+  try {
+    await documentApi.delete(projectId, id);
+    message.success('文件已刪除');
+    await loadDocuments();
+  } catch (error: any) {
+    message.error(error?.response?.data?.error || '刪除失敗');
   }
 }
 

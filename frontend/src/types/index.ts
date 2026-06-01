@@ -228,3 +228,16 @@ export interface GitHubJob {
   completed_at: string | null;
   html_url: string;
 }
+
+export interface Document {
+  id: string;
+  projectId: string;
+  taskId?: string;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  uploadedById: string;
+  createdAt: string;
+  uploadedBy?: { id: string; name: string };
+}

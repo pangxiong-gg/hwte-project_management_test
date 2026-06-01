@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { LoginResponse, Project, ProjectPhase, Requirement, Task, Bug, User, Notification, RequirementChange, TestCase, TestExecution, ProjectProgress, TeamMemberEfficiency, BugTrends, ExportData } from '../types';
+import type { LoginResponse, Project, ProjectPhase, Requirement, Task, Bug, User, Notification, RequirementChange, TestCase, TestExecution, ProjectProgress, TeamMemberEfficiency, BugTrends, ExportData, Document } from '../types';
 
 const api = axios.create({
   baseURL: '/api',
@@ -130,6 +130,15 @@ export const reportApi = {
     format === 'csv'
       ? api.get(`/reports/export?report=${report}&format=csv`, { responseType: 'blob' })
       : api.get<ExportData>(`/reports/export?report=${report}&format=excel`),
+};
+
+export const documentApi = {
+  getAll: (projectId: string) => api.get<Document[]>(`/projects/${projectId}/documents`),
+  upload: (projectId: string, data: { filename: string; content: string; mimeType: string; size: number; taskId?: string }) =>
+    api.post<Document>(`/projects/${projectId}/documents`, data),
+  delete: (projectId: string, id: string) => api.delete(`/projects/${projectId}/documents/${id}`),
+  download: (projectId: string, id: string) =>
+    api.get(`/projects/${projectId}/documents/${id}/download`, { responseType: 'blob' }),
 };
 
 export default api;
