@@ -153,3 +153,47 @@ export interface RequirementChange {
   createdAt: string;
   changedBy?: { id: string; name: string };
 }
+
+export interface ProjectProgress {
+  id: string;
+  name: string;
+  code: string;
+  status: string;
+  taskCompletionRate: number;
+  reqCompletionRate: number;
+  currentPhase: string;
+  totalTasks: number;
+  doneTasks: number;
+  totalReqs: number;
+  doneReqs: number;
+}
+
+export interface TeamMemberEfficiency {
+  id: string;
+  name: string;
+  completedTasks: number;
+  totalTasks: number;
+  fixedBugs: number;
+  totalBugs: number;
+  avgCompletionDays: number;
+  taskCompletionRate: number;
+  bugFixRate: number;
+}
+
+export interface BugTrendPoint {
+  date: string;
+  opened: number;
+  closed: number;
+}
+
+export interface BugTrends {
+  timeline: BugTrendPoint[];
+  bySeverity: Record<string, number>;
+  byPriority: Record<string, number>;
+}
+
+export interface ExportData {
+  headers: string[];
+  data: Record<string, any>[];
+  filename: string;
+}
