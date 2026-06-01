@@ -75,6 +75,9 @@ export interface Task {
   phase?: { id: string; name: string };
   plannedHours?: number;
   actualHours?: number;
+  dueDate?: string;
+  startedAt?: string;
+  completedAt?: string;
   gitBranch?: string;
   gitCommit?: string;
   gitPr?: string;
