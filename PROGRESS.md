@@ -172,3 +172,5 @@ npm run dev          # 開發模式 (PORT 5173)
 - 完成 CI/CD 整合（GitHub Actions 狀態顯示）
 - 更新 PROGRESS.md 記錄點
 - 完成文件管理（上傳/下載/刪除）
+- 修復：右上角用戶名刷新後顯示「使用者」（router 自動恢復 user）
+- 修復：上傳文件 413 Payload Too Large（Express body 限制增至 50MB）
