@@ -9,6 +9,7 @@ import userRoutes from './routes/userRoutes.js';
 import phaseRoutes from './routes/phaseRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import testCaseRoutes from './routes/testCaseRoutes.js';
+import reportRoutes from './routes/reportRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -31,6 +32,7 @@ app.use('/api/projects/:projectId/bugs', bugRoutes);
 app.use('/api/projects/:projectId/test-cases', testCaseRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/reports', reportRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
