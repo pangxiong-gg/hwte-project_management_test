@@ -30,7 +30,7 @@ router.get('/', async (req, res) => {
 router.post('/', roleMiddleware(['ADMIN', 'PROJECT_MANAGER']), async (req, res) => {
   try {
     const { projectId } = req.params;
-    const { taskCode, title, description, type, priority, requirementId, assigneeId, plannedHours, gitBranch, gitCommit, gitPr } = req.body;
+    const { taskCode, title, description, type, priority, requirementId, assigneeId, plannedHours, dueDate, startedAt, completedAt, gitBranch, gitCommit, gitPr } = req.body;
     const userId = (req as any).user?.userId;
 
     // 取得專案資訊與當前活躍階段
@@ -76,6 +76,9 @@ router.post('/', roleMiddleware(['ADMIN', 'PROJECT_MANAGER']), async (req, res) 
         requirementId,
         assigneeId,
         plannedHours,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        startedAt: startedAt ? new Date(startedAt) : null,
+        completedAt: completedAt ? new Date(completedAt) : null,
         phaseId: activePhase?.id || null,
         gitBranch,
         gitCommit,
