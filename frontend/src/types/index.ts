@@ -16,6 +16,7 @@ export interface Project {
   mode: string;
   startDate?: string;
   endDate?: string;
+  githubRepo?: string;
   createdAt: string;
   phases?: ProjectPhase[];
   _count?: {
@@ -196,4 +197,34 @@ export interface ExportData {
   headers: string[];
   data: Record<string, any>[];
   filename: string;
+}
+
+export interface GitHubWorkflow {
+  id: number;
+  name: string;
+  path: string;
+  state: string;
+}
+
+export interface GitHubRun {
+  id: number;
+  name: string;
+  head_branch: string;
+  head_sha: string;
+  status: string;
+  conclusion: string | null;
+  created_at: string;
+  updated_at: string;
+  run_number: number;
+  html_url: string;
+}
+
+export interface GitHubJob {
+  id: number;
+  name: string;
+  status: string;
+  conclusion: string | null;
+  started_at: string;
+  completed_at: string | null;
+  html_url: string;
 }

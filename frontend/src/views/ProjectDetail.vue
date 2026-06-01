@@ -105,6 +105,31 @@
         </div>
         <n-data-table :columns="testCaseColumns" :data="testCases" :pagination="{ pageSize: 10 }" />
       </n-tab-pane>
+
+      <!-- CI/CD Tab -->
+      <n-tab-pane name="cicd" tab="CI/CD">
+        <div v-if="!project?.githubRepo" style="text-align: center; padding: 40px 0;">
+          <n-empty description="尚未配置 GitHub 倉庫" />
+          <div v-if="isAdminOrPMComputed" style="margin-top: 16px; max-width: 400px; margin-left: auto; margin-right: auto;">
+            <n-input-group>
+              <n-input v-model:value="githubRepoInput" placeholder="例如：owner/repo" />
+              <n-button type="primary" :loading="submitting" @click="saveGithubRepo">保存</n-button>
+            </n-input-group>
+          </div>
+        </div>
+        <div v-else>
+          <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+            <n-text strong>倉庫：{{ project.githubRepo }}</n-text>
+            <n-button v-if="isAdminOrPMComputed" size="small" @click="githubRepoInput = project.githubRepo || ''; project.githubRepo = ''">重新配置</n-button>
+          </div>
+          <n-data-table
+            :columns="cicdColumns"
+            :data="runs"
+            :loading="loadingCicd"
+            :pagination="{ pageSize: 10 }"
+          />
+        </div>
+      </n-tab-pane>
     </n-tabs>
 
     <!-- 需求變更歷史 Modal -->
@@ -332,8 +357,8 @@ import { useRoute } from 'vue-router';
 import { useMessage } from 'naive-ui';
 import { NTag, NButton, NSpace, NAlert, NSelect, NTimeline, NTimelineItem } from 'naive-ui';
 import type { DataTableColumns } from 'naive-ui';
-import { projectApi, phaseApi, requirementApi, taskApi, bugApi, userApi, requirementChangeApi, testCaseApi } from '../services/api';
-import type { Project, ProjectPhase, Requirement, Task, Bug, User, RequirementChange, TestCase } from '../types';
+import { projectApi, phaseApi, requirementApi, taskApi, bugApi, userApi, requirementChangeApi, testCaseApi, cicdApi } from '../services/api';
+import type { Project, ProjectPhase, Requirement, Task, Bug, User, RequirementChange, TestCase, GitHubRun } from '../types';
 import { useAuthStore } from '../stores/auth';
 import { canCreateRequirement, canCreateTask, canCreateBug, canManageTestCase, isAdminOrPM } from '../utils/permissions';
 import TaskBoard from '../components/TaskBoard.vue';
@@ -355,6 +380,11 @@ const selectedRequirementId = ref<string>('');
 const activeTab = ref('requirements');
 const submitting = ref(false);
 const advancing = ref(false);
+
+// CI/CD
+const runs = ref<GitHubRun[]>([]);
+const loadingCicd = ref(false);
+const githubRepoInput = ref('');
 
 // Modals
 const showReqModal = ref(false);
@@ -669,6 +699,55 @@ const bugColumns: DataTableColumns<Bug> = [
   },
 ];
 
+const cicdColumns: DataTableColumns<GitHubRun> = [
+  { title: '執行編號', key: 'run_number', width: 100 },
+  { title: '名稱', key: 'name' },
+  { title: '分支', key: 'head_branch' },
+  {
+    title: '狀態',
+    key: 'status',
+    width: 120,
+    render: (row) => {
+      const statusMap: Record<string, { text: string; type: string }> = {
+        completed: { text: '已完成', type: 'default' },
+        in_progress: { text: '執行中', type: 'warning' },
+        queued: { text: '排隊中', type: 'info' },
+        waiting: { text: '等待中', type: 'info' },
+      };
+      const s = statusMap[row.status] || { text: row.status, type: 'default' };
+      return h(NTag, { size: 'small', type: s.type as any }, { default: () => s.text });
+    },
+  },
+  {
+    title: '結果',
+    key: 'conclusion',
+    width: 120,
+    render: (row) => {
+      if (!row.conclusion) return '-';
+      const conclusionMap: Record<string, { text: string; type: string }> = {
+        success: { text: '成功', type: 'success' },
+        failure: { text: '失敗', type: 'error' },
+        cancelled: { text: '已取消', type: 'warning' },
+        skipped: { text: '已跳過', type: 'default' },
+      };
+      const c = conclusionMap[row.conclusion] || { text: row.conclusion, type: 'default' };
+      return h(NTag, { size: 'small', type: c.type as any }, { default: () => c.text });
+    },
+  },
+  {
+    title: '建立時間',
+    key: 'created_at',
+    render: (row) => formatDate(row.created_at),
+  },
+  {
+    title: '操作',
+    key: 'actions',
+    width: 100,
+    render: (row) =>
+      h(NButton, { size: 'tiny', text: true, tag: 'a', href: row.html_url, target: '_blank' }, { default: () => '查看' }),
+  },
+];
+
 const testCaseColumns: DataTableColumns<TestCase> = [
   { title: '編號', key: 'tcCode' },
   { title: '標題', key: 'title' },
@@ -729,9 +808,44 @@ async function loadData() {
     bugs.value = bugRes.data;
     users.value = userRes.data;
     testCases.value = tcRes.data;
+    await loadCicd();
   } catch (error) {
     console.error('Failed to load project details:', error);
     message.error('載入專案資料失敗');
+  }
+}
+
+// 載入 CI/CD 資料
+async function loadCicd() {
+  try {
+    loadingCicd.value = true;
+    const res = await cicdApi.getRuns(projectId);
+    runs.value = res.data.runs;
+  } catch (error: any) {
+    console.error('Failed to load CI/CD data:', error);
+  } finally {
+    loadingCicd.value = false;
+  }
+}
+
+// 保存 GitHub 倉庫配置
+async function saveGithubRepo() {
+  if (!githubRepoInput.value.trim()) {
+    message.error('請輸入 GitHub 倉庫');
+    return;
+  }
+  try {
+    submitting.value = true;
+    await cicdApi.updateGithubRepo(projectId, githubRepoInput.value.trim());
+    message.success('GitHub 倉庫已配置');
+    const res = await projectApi.get(projectId);
+    project.value = res.data;
+    githubRepoInput.value = '';
+    await loadCicd();
+  } catch (error: any) {
+    message.error(error?.response?.data?.error || '配置失敗');
+  } finally {
+    submitting.value = false;
   }
 }
 

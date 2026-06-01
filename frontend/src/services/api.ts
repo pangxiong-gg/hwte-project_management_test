@@ -111,6 +111,17 @@ export const requirementChangeApi = {
     api.get<RequirementChange[]>(`/projects/${projectId}/requirements/${requirementId}/changes`),
 };
 
+export const cicdApi = {
+  getWorkflows: (projectId: string) =>
+    api.get<{ workflows: import('../types').GitHubWorkflow[] }>(`/projects/${projectId}/cicd/workflows`),
+  getRuns: (projectId: string) =>
+    api.get<{ runs: import('../types').GitHubRun[] }>(`/projects/${projectId}/cicd/runs`),
+  getRunDetail: (projectId: string, runId: number) =>
+    api.get<{ run: import('../types').GitHubRun; jobs: import('../types').GitHubJob[] }>(`/projects/${projectId}/cicd/runs/${runId}`),
+  updateGithubRepo: (projectId: string, githubRepo: string) =>
+    api.put(`/projects/${projectId}/cicd/github-repo`, { githubRepo }),
+};
+
 export const reportApi = {
   getProjectProgress: () => api.get<{ projects: ProjectProgress[] }>('/reports/project-progress'),
   getTeamEfficiency: () => api.get<{ members: TeamMemberEfficiency[] }>('/reports/team-efficiency'),
