@@ -69,6 +69,12 @@
 - [x] CSV / Excel 導出
 - [x] 權限控制（按角色+項目篩選數據）
 
+### CI/CD 整合
+- [x] GitHub Actions 狀態顯示（只讀）
+- [x] 專案級：工作流列表 + 運行歷史
+- [x] 項目配置 GitHub repo 關聯（ADMIN/PM）
+- [x] 運行狀態顏色標識（成功/失敗/進行中）
+
 ---
 
 ## 數據模型
@@ -123,7 +129,7 @@ Project ─┬─→ Requirement
 
 按優先順序：
 
-1. **CI/CD 整合** — 自動觸發測試、部署狀態同步
+1. **CI/CD 整合** ✅ — GitHub Actions 狀態顯示（只讀）
 2. **文件管理** — 需求規格書、設計文件上傳
 3. **日曆/時間線視圖** — 里程碑、deadline 視覺化
 4. **外部工具整合** — GitHub Webhook、JIRA 同步
@@ -157,3 +163,5 @@ npm run dev          # 開發模式 (PORT 5173)
 - 完成報表與統計功能（8 個 Task）
 - 提交並推送到 master
 - 建立此 PROGRESS.md 記錄點機制
+- 完成 CI/CD 整合（GitHub Actions 狀態顯示）
+- 更新 PROGRESS.md 記錄點
