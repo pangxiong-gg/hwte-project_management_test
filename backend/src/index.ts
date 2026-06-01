@@ -11,6 +11,7 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import testCaseRoutes from './routes/testCaseRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import cicdRoutes from './routes/cicdRoutes.js';
+import documentRoutes from './routes/documentRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,6 +33,7 @@ app.use('/api/projects/:projectId/tasks', taskRoutes);
 app.use('/api/projects/:projectId/bugs', bugRoutes);
 app.use('/api/projects/:projectId/test-cases', testCaseRoutes);
 app.use('/api/projects/:projectId/cicd', cicdRoutes);
+app.use('/api/projects/:projectId/documents', documentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/reports', reportRoutes);

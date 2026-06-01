@@ -23,6 +23,7 @@ model User {
   assignedBugs        Bug[]             @relation("BugAssignee")
   notifications       Notification[]
   requirementChanges  RequirementChange[]
+  documents           Document[]
 }
 
 model Project {
@@ -43,6 +44,7 @@ model Project {
   tasks        Task[]
   testCases    TestCase[]
   bugs         Bug[]
+  documents    Document[]
 }
 
 model Requirement {
@@ -107,6 +109,7 @@ model Task {
   phase         ProjectPhase? @relation(fields: [phaseId], references: [id], onDelete: SetNull)
   assignee      User?         @relation("TaskAssignee", fields: [assigneeId], references: [id])
   bugs          Bug[]
+  documents     Document[]
 
   gitBranch     String?
   gitCommit     String?
@@ -214,4 +217,23 @@ model RequirementChange {
   changedBy   User        @relation(fields: [changedById], references: [id])
 
   @@index([requirementId, createdAt])
+}
+
+model Document {
+  id           String   @id @default(uuid())
+  projectId    String
+  taskId       String?
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  uploadedById String
+  createdAt    DateTime @default(now())
+
+  project    Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task       Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  uploadedBy User    @relation(fields: [uploadedById], references: [id])
+
+  @@index([projectId])
+  @@index([taskId])
 }
