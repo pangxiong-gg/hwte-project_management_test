@@ -117,6 +117,7 @@ model Task {
 
   plannedHours  Float?
   actualHours   Float?
+  dueDate       DateTime?
   startedAt     DateTime?
   completedAt   DateTime?
   createdAt     DateTime @default(now())
