@@ -32,6 +32,7 @@ model Project {
   description String?
   status      String   @default("PLANNING")
   mode        String   @default("HYBRID")
+  githubRepo  String?
   startDate   DateTime?
   endDate     DateTime?
   createdAt   DateTime @default(now())
