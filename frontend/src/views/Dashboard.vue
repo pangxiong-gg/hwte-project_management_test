@@ -71,6 +71,39 @@
       <n-layout-content class="content">
         <router-view />
       </n-layout-content>
+
+      <n-drawer v-model:show="showProfileDrawer" placement="right" :width="480">
+        <n-drawer-content title="個人資料" closable>
+          <n-card title="基本資訊" style="margin-bottom: 20px;">
+            <n-descriptions :columns="2" bordered>
+              <n-descriptions-item label="姓名">{{ profileUser?.name }}</n-descriptions-item>
+              <n-descriptions-item label="Email">{{ profileUser?.email }}</n-descriptions-item>
+              <n-descriptions-item label="角色">{{ roleLabel }}</n-descriptions-item>
+              <n-descriptions-item label="狀態">{{ statusLabel }}</n-descriptions-item>
+              <n-descriptions-item label="建立時間" :span="2">{{ formatDate(profileUser?.createdAt) }}</n-descriptions-item>
+            </n-descriptions>
+          </n-card>
+
+          <n-card title="修改資料">
+            <n-form :model="profileForm" :rules="profileRules" ref="profileFormRef">
+              <n-form-item label="姓名" path="name">
+                <n-input v-model:value="profileForm.name" placeholder="請輸入姓名" />
+              </n-form-item>
+              <n-form-item label="新密碼" path="password">
+                <n-input v-model:value="profileForm.password" type="password" placeholder="不修改請留空" />
+              </n-form-item>
+              <n-form-item label="確認密碼">
+                <n-input v-model:value="profileForm.confirmPassword" type="password" placeholder="不修改請留空" />
+              </n-form-item>
+              <n-form-item>
+                <n-space>
+                  <n-button type="primary" :loading="profileSubmitting" @click="handleProfileSubmit">儲存變更</n-button>
+                </n-space>
+              </n-form-item>
+            </n-form>
+          </n-card>
+        </n-drawer-content>
+      </n-drawer>
     </n-layout>
   </n-layout>
 </template>
@@ -81,10 +114,11 @@ import { useRouter } from 'vue-router';
 import {
   NLayout, NLayoutSider, NLayoutHeader, NLayoutContent,
   NMenu, NPopover, NList, NListItem, NThing, NButton, NEmpty, NDropdown,
+  NDrawer, NDrawerContent, NCard, NDescriptions, NDescriptionsItem, NForm, NFormItem, NInput, NSpace,
 } from 'naive-ui';
 import { useAuthStore } from '../stores/auth';
-import { notificationApi } from '../services/api';
-import type { Notification } from '../types';
+import { notificationApi, userApi } from '../services/api';
+import type { Notification, User } from '../types';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -92,6 +126,82 @@ const authStore = useAuthStore();
 const notifications = ref<Notification[]>([]);
 const unreadCount = ref(0);
 let pollInterval: ReturnType<typeof setInterval> | null = null;
+
+// Profile drawer
+const showProfileDrawer = ref(false);
+
+// Profile data
+const profileUser = ref<User | null>(null);
+const profileFormRef = ref();
+const profileSubmitting = ref(false);
+const profileForm = ref({ name: '', password: '', confirmPassword: '' });
+
+const profileRules = {
+  name: { required: true, message: '請輸入姓名', trigger: 'blur' },
+};
+
+const roleLabel = computed(() => {
+  const map: Record<string, string> = {
+    ADMIN: '系統管理員',
+    PROJECT_MANAGER: '專案經理',
+    DEVELOPER: '開發人員',
+    TESTER: '測試人員',
+  };
+  return map[profileUser.value?.role || ''] || profileUser.value?.role || '';
+});
+
+const statusLabel = computed(() => {
+  const map: Record<string, string> = {
+    ACTIVE: '啟用',
+    INACTIVE: '停用',
+  };
+  return map[profileUser.value?.status || ''] || profileUser.value?.status || '';
+});
+
+function formatDate(date?: string) {
+  return date ? new Date(date).toLocaleDateString('zh-TW') : '-';
+}
+
+async function loadProfileUser() {
+  try {
+    const res = await userApi.getMe();
+    profileUser.value = res.data;
+    profileForm.value.name = res.data.name;
+  } catch {
+    // silent
+  }
+}
+
+async function handleProfileSubmit() {
+  try {
+    await profileFormRef.value?.validate();
+    if (profileForm.value.password && profileForm.value.password !== profileForm.value.confirmPassword) {
+      // Use naive-ui message or just return
+      return;
+    }
+    profileSubmitting.value = true;
+    const data: Partial<{ name: string; password: string }> = {};
+    if (profileForm.value.name !== profileUser.value?.name) {
+      data.name = profileForm.value.name;
+    }
+    if (profileForm.value.password) {
+      data.password = profileForm.value.password;
+    }
+    if (Object.keys(data).length === 0) {
+      profileSubmitting.value = false;
+      return;
+    }
+    const res = await userApi.updateMe(data);
+    profileUser.value = res.data;
+    authStore.user = res.data;
+    profileForm.value.password = '';
+    profileForm.value.confirmPassword = '';
+  } catch (error: any) {
+    // silent
+  } finally {
+    profileSubmitting.value = false;
+  }
+}
 
 const userInitial = computed(() => {
   const name = authStore.user?.name || '';
@@ -172,7 +282,8 @@ function handleUserMenuSelect(key: string) {
   if (key === 'logout') {
     authStore.logout();
   } else if (key === 'profile') {
-    router.push('/profile');
+    showProfileDrawer.value = true;
+    loadProfileUser();
   } else if (key === 'users') {
     router.push('/users');
   }
