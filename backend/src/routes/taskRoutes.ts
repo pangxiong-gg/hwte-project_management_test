@@ -7,6 +7,15 @@ import { notifyTaskAssigned, notifyTaskStatusChanged } from '../services/notific
 const router = Router({ mergeParams: true });
 router.use(authMiddleware);
 
+function parseDate(dateStr: string | undefined, fieldName: string): Date | null {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) {
+    throw new Error(`Invalid ${fieldName}: "${dateStr}"`);
+  }
+  return d;
+}
+
 // GET /api/projects/:projectId/tasks - 所有人可查看
 router.get('/', async (req, res) => {
   try {
@@ -76,9 +85,9 @@ router.post('/', roleMiddleware(['ADMIN', 'PROJECT_MANAGER']), async (req, res) 
         requirementId,
         assigneeId,
         plannedHours,
-        dueDate: dueDate ? new Date(dueDate) : null,
-        startedAt: startedAt ? new Date(startedAt) : null,
-        completedAt: completedAt ? new Date(completedAt) : null,
+        dueDate: parseDate(dueDate, 'dueDate'),
+        startedAt: parseDate(startedAt, 'startedAt'),
+        completedAt: parseDate(completedAt, 'completedAt'),
         phaseId: activePhase?.id || null,
         gitBranch,
         gitCommit,
