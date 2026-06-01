@@ -1,5 +1,56 @@
 <template>
   <div>
+    <!-- Statistics Overview Section -->
+    <n-spin :show="loadingStats">
+      <div v-if="!loadingStats" style="margin-bottom: 24px;">
+        <!-- Statistics Cards Row -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px;">
+          <n-card>
+            <n-statistic label="总项目数" :value="projectStore.projects.length" />
+          </n-card>
+          <n-card>
+            <n-statistic label="进行中" :value="activeProjects" />
+          </n-card>
+          <n-card>
+            <n-statistic label="本周完成任务" :value="weeklyCompletedTasks" />
+          </n-card>
+          <n-card>
+            <n-statistic label="未读通知" :value="unreadNotifications" />
+          </n-card>
+        </div>
+
+        <!-- Charts Grid -->
+        <n-spin :show="loadingCharts">
+          <div v-if="projectProgress.length > 0 || teamEfficiency.length > 0 || bugTrends.timeline.length > 0" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px;">
+            <n-card title="项目进度">
+              <ProjectProgressChart v-if="projectProgress.length > 0" :data="projectProgress" />
+              <n-empty v-else description="暂无数据" />
+            </n-card>
+            <n-card title="团队效率">
+              <TeamEfficiencyChart v-if="teamEfficiency.length > 0" :data="teamEfficiency" />
+              <n-empty v-else description="暂无数据" />
+            </n-card>
+            <n-card title="Bug 趋势">
+              <BugTrendChart v-if="bugTrends.timeline.length > 0" :data="bugTrends.timeline" />
+              <n-empty v-else description="暂无数据" />
+            </n-card>
+            <n-card title="Bug 严重级别分布">
+              <BugSeverityChart v-if="Object.keys(bugTrends.bySeverity).length > 0" :data="bugTrends.bySeverity" />
+              <n-empty v-else description="暂无数据" />
+            </n-card>
+          </div>
+          <n-empty v-else description="暂无报表数据" style="margin: 40px 0;" />
+        </n-spin>
+
+        <!-- Export Buttons -->
+        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-bottom: 20px;">
+          <n-button size="small" @click="exportReport('csv')">导出 CSV</n-button>
+          <n-button size="small" type="primary" @click="exportReport('excel')">导出 Excel</n-button>
+        </div>
+      </div>
+    </n-spin>
+
+    <!-- Existing Project List -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
       <n-h2 style="margin: 0;">專案總覽</n-h2>
       <n-button type="primary" @click="showModal = true">+ 新增專案</n-button>
@@ -37,14 +88,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, h, onMounted } from 'vue';
+import { ref, h, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMessage } from 'naive-ui';
-import { NButton, NH2, NDataTable, NModal, NForm, NFormItem, NInput, NSpace, NSelect, NTag } from 'naive-ui';
+import {
+  NButton, NH2, NDataTable, NModal, NForm, NFormItem, NInput, NSpace, NSelect, NTag,
+  NStatistic, NSpin, NCard, NEmpty,
+} from 'naive-ui';
 import type { DataTableColumns } from 'naive-ui';
 import { useProjectStore } from '../stores/project';
-import { projectApi } from '../services/api';
-import type { Project } from '../types';
+import { projectApi, reportApi } from '../services/api';
+import { downloadExcel } from '../utils/export';
+import ProjectProgressChart from '../components/ProjectProgressChart.vue';
+import TeamEfficiencyChart from '../components/TeamEfficiencyChart.vue';
+import BugTrendChart from '../components/BugTrendChart.vue';
+import BugSeverityChart from '../components/BugSeverityChart.vue';
+import type { Project, ProjectProgress, TeamMemberEfficiency, BugTrends } from '../types';
 
 const router = useRouter();
 const message = useMessage();
@@ -59,6 +118,61 @@ const form = ref({
   description: '',
   mode: 'HYBRID',
 });
+
+// Report stats
+const loadingStats = ref(false);
+const loadingCharts = ref(false);
+const projectProgress = ref<ProjectProgress[]>([]);
+const teamEfficiency = ref<TeamMemberEfficiency[]>([]);
+const bugTrends = ref<BugTrends>({ timeline: [], bySeverity: {}, byPriority: {} });
+const weeklyCompletedTasks = ref(0);
+const unreadNotifications = ref(0);
+
+const activeProjects = computed(() =>
+  projectStore.projects.filter((p) => p.status === 'ACTIVE').length
+);
+
+async function loadStats() {
+  loadingStats.value = true;
+  loadingCharts.value = true;
+  try {
+    const [progressRes, efficiencyRes, bugRes] = await Promise.all([
+      reportApi.getProjectProgress(),
+      reportApi.getTeamEfficiency(),
+      reportApi.getBugTrends(30),
+    ]);
+    projectProgress.value = progressRes.data.projects || [];
+    teamEfficiency.value = efficiencyRes.data.members || [];
+    bugTrends.value = bugRes.data || { timeline: [], bySeverity: {}, byPriority: {} };
+  } catch (error: any) {
+    message.error('加载报表数据失败');
+  } finally {
+    loadingStats.value = false;
+    loadingCharts.value = false;
+  }
+}
+
+async function exportReport(format: 'csv' | 'excel') {
+  try {
+    if (format === 'csv') {
+      const res = await reportApi.exportReport('project-progress', 'csv');
+      const blob = new Blob([res.data], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'project-report.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    } else {
+      const res = await reportApi.exportReport('project-progress', 'excel');
+      const data = res.data as { headers: string[]; data: Record<string, any>[]; filename: string };
+      downloadExcel(data.filename || 'project-report', data.headers, data.data);
+    }
+    message.success('导出成功');
+  } catch (error: any) {
+    message.error('导出失败');
+  }
+}
 
 const modeOptions = [
   { label: '瀑布式', value: 'WATERFALL' },
@@ -153,5 +267,6 @@ const columns: DataTableColumns<Project> = [
 
 onMounted(() => {
   projectStore.fetchProjects();
+  loadStats();
 });
 </script>

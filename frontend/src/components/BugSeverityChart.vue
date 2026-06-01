@@ -10,6 +10,8 @@ import { PieChart } from 'echarts/charts';
 import { TooltipComponent, LegendComponent } from 'echarts/components';
 import VChart from 'vue-echarts';
 
+use([CanvasRenderer, PieChart, TooltipComponent, LegendComponent]);
+
 const props = defineProps<{ data: Record<string, number> }>();
 
 const severityColors: Record<string, string> = {
