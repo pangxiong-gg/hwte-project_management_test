@@ -6,14 +6,14 @@ const prisma = new PrismaClient();
 async function main() {
   const hashedPassword = await bcrypt.hash('password123', 10);
 
-  // === 用戶 ===
-  const admin = await prisma.user.create({ data: { email: 'admin@company.com', name: '系統管理員', password: hashedPassword, role: 'ADMIN' } });
-  const pm = await prisma.user.create({ data: { email: 'pm@company.com', name: '專案經理', password: hashedPassword, role: 'PROJECT_MANAGER' } });
-  const pm2 = await prisma.user.create({ data: { email: 'pm2@company.com', name: '產品經理', password: hashedPassword, role: 'PROJECT_MANAGER' } });
-  const dev1 = await prisma.user.create({ data: { email: 'dev1@company.com', name: '老張', password: hashedPassword, role: 'DEVELOPER' } });
-  const dev2 = await prisma.user.create({ data: { email: 'dev2@company.com', name: '小王', password: hashedPassword, role: 'DEVELOPER' } });
-  const dev3 = await prisma.user.create({ data: { email: 'dev3@company.com', name: '小李', password: hashedPassword, role: 'DEVELOPER' } });
-  const tester = await prisma.user.create({ data: { email: 'tester@company.com', name: '測試員', password: hashedPassword, role: 'TESTER' } });
+  // === 用戶（固定 UUID，token 永遠有效）===
+  const admin = await prisma.user.create({ data: { id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', email: 'admin@company.com', name: '系統管理員', password: hashedPassword, role: 'ADMIN' } });
+  const pm = await prisma.user.create({ data: { id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22', email: 'pm@company.com', name: '專案經理', password: hashedPassword, role: 'PROJECT_MANAGER' } });
+  const pm2 = await prisma.user.create({ data: { id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33', email: 'pm2@company.com', name: '產品經理', password: hashedPassword, role: 'PROJECT_MANAGER' } });
+  const dev1 = await prisma.user.create({ data: { id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a44', email: 'dev1@company.com', name: '老張', password: hashedPassword, role: 'DEVELOPER' } });
+  const dev2 = await prisma.user.create({ data: { id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a55', email: 'dev2@company.com', name: '小王', password: hashedPassword, role: 'DEVELOPER' } });
+  const dev3 = await prisma.user.create({ data: { id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a66', email: 'dev3@company.com', name: '小李', password: hashedPassword, role: 'DEVELOPER' } });
+  const tester = await prisma.user.create({ data: { id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a77', email: 'tester@company.com', name: '測試員', password: hashedPassword, role: 'TESTER' } });
 
   // === 專案 1：瀑布式 ===
   const project1 = await prisma.project.create({
