@@ -12,6 +12,7 @@ import testCaseRoutes from './routes/testCaseRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import cicdRoutes from './routes/cicdRoutes.js';
 import documentRoutes from './routes/documentRoutes.js';
+import webhookEventRoutes from './routes/webhookEventRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +41,7 @@ app.use('/api/projects/:projectId/bugs', bugRoutes);
 app.use('/api/projects/:projectId/test-cases', testCaseRoutes);
 app.use('/api/projects/:projectId/cicd', cicdRoutes);
 app.use('/api/projects/:projectId/documents', documentRoutes);
+app.use('/api/projects/:projectId/webhook-events', webhookEventRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/reports', reportRoutes);
