@@ -98,3 +98,63 @@ export async function notifyRequirementStatusChanged(projectId: string, reqId: s
     projectId,
   });
 }
+
+export async function notifyGitCommit(projectId: string, taskId: string, taskTitle: string, commitSha: string, commitMessage: string, author: string, notifyUserId: string) {
+  await createNotification({
+    userId: notifyUserId,
+    type: 'GIT_COMMIT',
+    title: '任務有新的 commit',
+    content: `${commitMessage} by ${author}`,
+    relatedType: 'TASK',
+    relatedId: taskId,
+    projectId,
+  });
+}
+
+export async function notifyGitPrCreated(projectId: string, taskId: string, taskTitle: string, prNumber: number, prTitle: string, notifyUserId: string) {
+  await createNotification({
+    userId: notifyUserId,
+    type: 'GIT_PR_CREATED',
+    title: '任務有新的 PR',
+    content: `PR #${prNumber}: ${prTitle}`,
+    relatedType: 'TASK',
+    relatedId: taskId,
+    projectId,
+  });
+}
+
+export async function notifyGitPrMerged(projectId: string, taskId: string, taskTitle: string, prNumber: number, commitSha: string, notifyUserId: string) {
+  await createNotification({
+    userId: notifyUserId,
+    type: 'GIT_PR_MERGED',
+    title: 'PR 已合併',
+    content: `PR #${prNumber} 已合併 (commit: ${commitSha})`,
+    relatedType: 'TASK',
+    relatedId: taskId,
+    projectId,
+  });
+}
+
+export async function notifyCiSuccess(projectId: string, taskId: string, taskTitle: string, workflowName: string, runUrl: string, notifyUserId: string) {
+  await createNotification({
+    userId: notifyUserId,
+    type: 'CI_SUCCESS',
+    title: 'CI 通過',
+    content: `Workflow "${workflowName}" 成功完成`,
+    relatedType: 'TASK',
+    relatedId: taskId,
+    projectId,
+  });
+}
+
+export async function notifyCiFailed(projectId: string, taskId: string, taskTitle: string, workflowName: string, runUrl: string, notifyUserId: string) {
+  await createNotification({
+    userId: notifyUserId,
+    type: 'CI_FAILED',
+    title: 'CI 失敗',
+    content: `Workflow "${workflowName}" 失敗，請查看詳情`,
+    relatedType: 'TASK',
+    relatedId: taskId,
+    projectId,
+  });
+}
