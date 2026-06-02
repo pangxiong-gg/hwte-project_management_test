@@ -12,7 +12,7 @@ async function getVisibleProjectIds(userId: string, userRole: string) {
     return projects.map((p) => p.id);
   }
 
-  if (userRole === 'PROJECT_MANAGER') {
+  if (userRole === 'PROJECT_MANAGER' || userRole === 'PM') {
     const projects = await prisma.project.findMany({ select: { id: true } });
     return projects.map((p) => p.id);
   }
