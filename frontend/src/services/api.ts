@@ -176,4 +176,15 @@ export const tagApi = {
   delete: (projectId: string, id: string) => api.delete(`/projects/${projectId}/tags/${id}`),
 };
 
+export const sprintApi = {
+  getAll: (projectId: string) => api.get<{ sprints: any[] }>(`/projects/${projectId}/sprints`),
+  create: (projectId: string, data: Partial<Sprint>) =>
+    api.post(`/projects/${projectId}/sprints`, data),
+  update: (projectId: string, id: string, data: Partial<Sprint>) =>
+    api.put(`/projects/${projectId}/sprints/${id}`, data),
+  delete: (projectId: string, id: string) => api.delete(`/projects/${projectId}/sprints/${id}`),
+  getBurndown: (projectId: string, id: string) =>
+    api.get<{ sprint: any; totalHours: number; data: any[] }>(`/projects/${projectId}/sprints/${id}/burndown`),
+};
+
 export default api;

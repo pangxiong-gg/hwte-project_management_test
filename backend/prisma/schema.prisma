@@ -49,6 +49,7 @@ model Project {
   comments      Comment[]
   webhookEvents WebhookEvent[]
   tags         Tag[]
+  sprints      Sprint[]
 }
 
 model Requirement {
@@ -124,6 +125,8 @@ model Task {
   gitCommit     String?
   gitPr         String?
 
+  sprintId      String?
+
   plannedHours  Float?
   actualHours   Float?
   dueDate       DateTime?
@@ -132,7 +135,10 @@ model Task {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  sprint        Sprint?       @relation(fields: [sprintId], references: [id], onDelete: SetNull)
+
   @@unique([projectId, taskCode])
+  @@index([sprintId])
 }
 
 model TestCase {
@@ -285,6 +291,25 @@ model Comment {
   @@index([projectId, relatedType, relatedId, createdAt])
   @@index([parentId])
   @@index([userId])
+}
+
+model Sprint {
+  id        String   @id @default(uuid())
+  projectId String
+  name      String
+  goal      String?
+  startDate DateTime
+  endDate   DateTime
+  status    String   @default("PLANNING")
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId, status])
+  @@index([startDate])
 }
 
 model Tag {

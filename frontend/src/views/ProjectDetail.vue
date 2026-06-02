@@ -189,6 +189,11 @@
       <n-tab-pane name="tags" tab="標籤">
         <TagManager :project-id="projectId" />
       </n-tab-pane>
+
+      <!-- Sprint Tab -->
+      <n-tab-pane name="sprints" tab="Sprint">
+        <SprintList :project-id="projectId" :can-manage="isAdminOrPMComputed" />
+      </n-tab-pane>
     </n-tabs>
 
     <!-- 需求變更歷史 Modal -->
@@ -437,6 +442,7 @@ import SubtaskList from '../components/SubtaskList.vue';
 import TagBadge from '../components/TagBadge.vue';
 import TagSelector from '../components/TagSelector.vue';
 import TagManager from '../components/TagManager.vue';
+import SprintList from '../components/SprintList.vue';
 
 const route = useRoute();
 const message = useMessage();

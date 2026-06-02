@@ -23,8 +23,10 @@
           v-for="task in columnTasks(column.key)"
           :key="task.id"
           class="kanban-card"
+          :class="{ dragging: draggingTaskId === task.id }"
           draggable="true"
           @dragstart="handleDragStart(task)"
+          @dragend="handleDragEnd"
         >
           <div class="kanban-card-header">
             <span class="kanban-card-code">{{ task.taskCode }}</span>
@@ -134,6 +136,7 @@ const assigningTaskId = ref<string | null>(null);
 
 const dragOverColumn = ref<string | null>(null);
 const draggedTask = ref<Task | null>(null);
+const draggingTaskId = ref<string | null>(null);
 
 // 瀑布式看板欄位：按 phase 分組
 const waterfallColumns = computed(() => {
@@ -181,6 +184,13 @@ function priorityType(priority: string): any {
 
 function handleDragStart(task: Task) {
   draggedTask.value = task;
+  draggingTaskId.value = task.id;
+}
+
+function handleDragEnd() {
+  draggingTaskId.value = null;
+  draggedTask.value = null;
+  dragOverColumn.value = null;
 }
 
 function handleDragOver(key: string) {
@@ -205,6 +215,7 @@ function handleDrop(key: string) {
     }
   }
   draggedTask.value = null;
+  draggingTaskId.value = null;
 }
 
 function startAssign(taskId: string) {
@@ -241,6 +252,11 @@ function emitAssign(taskId: string, assigneeId: string | null) {
 .kanban-column.drag-over {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px #3b82f615;
+  background: #f8fafc;
+}
+
+.kanban-column.drag-over .kanban-column-header {
+  background: #eff6ff;
 }
 
 .kanban-column-header {
@@ -281,6 +297,12 @@ function emitAssign(taskId: string, assigneeId: string | null) {
 
 .kanban-card:active {
   cursor: grabbing;
+}
+
+.kanban-card.dragging {
+  opacity: 0.5;
+  transform: scale(0.98) rotate(1deg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .kanban-card-header {

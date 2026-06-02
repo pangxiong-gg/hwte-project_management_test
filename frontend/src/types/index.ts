@@ -67,6 +67,25 @@ export interface Tag {
   createdAt?: string;
 }
 
+export interface Sprint {
+  id: string;
+  projectId: string;
+  name: string;
+  goal?: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+  tasks?: Task[];
+  stats?: {
+    totalTasks: number;
+    doneTasks: number;
+    progress: number;
+    totalHours: number;
+    actualHours: number;
+  };
+  createdAt?: string;
+}
+
 export interface Task {
   id: string;
   projectId: string;
@@ -82,6 +101,8 @@ export interface Task {
   assignee?: { id: string; name: string };
   requirement?: { id: string; reqCode: string; title: string };
   phase?: { id: string; name: string };
+  sprintId?: string;
+  sprint?: { id: string; name: string };
   project?: { id: string; name: string; code: string };
   plannedHours?: number;
   actualHours?: number;

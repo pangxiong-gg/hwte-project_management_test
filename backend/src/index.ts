@@ -17,6 +17,7 @@ import myTaskRoutes from './routes/myTaskRoutes.js';
 import resourceLoadRoutes from './routes/resourceLoadRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
 import tagRoutes from './routes/tagRoutes.js';
+import sprintRoutes from './routes/sprintRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -53,6 +54,7 @@ app.use('/api/my-tasks', myTaskRoutes);
 app.use('/api/resource-load', resourceLoadRoutes);
 app.use('/api/projects/:projectId/comments', commentRoutes);
 app.use('/api/projects/:projectId/tags', tagRoutes);
+app.use('/api/projects/:projectId/sprints', sprintRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
