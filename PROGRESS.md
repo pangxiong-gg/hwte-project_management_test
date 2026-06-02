@@ -6,7 +6,7 @@
 
 ## 最後更新
 
-2026-06-02
+2026-06-02（更新）
 
 ---
 
@@ -90,6 +90,15 @@
 - [x] 任務類型顏色區分（開發/設計/測試/文檔）
 - [x] 純 CSS Flexbox 渲染（無新圖表庫依賴）
 
+### GitHub Webhook 整合
+- [x] Webhook 接收端點（`/api/webhooks/github`）
+- [x] HMAC-SHA256 簽名驗證（混合模式：開發跳過/生產驗證）
+- [x] push 事件 — 自動關聯任務 gitCommit
+- [x] pull_request 事件 — PR 創建/合併更新 gitPr
+- [x] workflow_run 事件 — CI 成功/失敗自動通知
+- [x] WebhookEvent 日誌模型 + 查詢 API
+- [x] 前端 Webhook 日誌 Tab
+
 ---
 
 ## 數據模型
@@ -117,7 +126,7 @@ Project ─┬─→ Requirement
 |------|------|------|
 | 登入 | /login | JWT 登入 |
 | 專案列表 | / | 專案表格 + 統計概覽 + 報表圖表 |
-| 專案詳情 | /projects/:id | 需求/任務/Bug/測試/時間線 Tab |
+| 專案詳情 | /projects/:id | 需求/任務/Bug/測試/時間線/Webhook日誌 Tab |
 | 個人資料 | /profile | 修改姓名/密碼 |
 | 用戶管理 | /users | ADMIN 專用 |
 
@@ -147,7 +156,9 @@ Project ─┬─→ Requirement
 1. **CI/CD 整合** ✅ — GitHub Actions 狀態顯示（只讀）
 2. **文件管理** ✅ — 需求規格書、設計文件上傳
 3. **日曆/時間線視圖** ✅ — 里程碑、deadline 視覺化
-4. **外部工具整合** — GitHub Webhook、JIRA 同步
+4. **外部工具整合** ✅ — GitHub Webhook（push/PR/workflow_run）
+
+---
 
 ---
 
@@ -181,7 +192,12 @@ npm run dev          # 開發模式 (PORT 5173)
 - 前端類型：Task 接口補全日期字段
 - 前端組件：ProjectTimeline.vue（里程碑條 + 甘特圖 + 今天線 + 負責人頭像）
 - ProjectDetail：集成「時間線」Tab
+- 完成 GitHub Webhook 整合（9 個 Task）
+- Prisma Schema：新增 WebhookEvent 模型
+- 後端：簽名驗證中間件 + 事件處理器 + Webhook 接收端點 + 日誌 API
+- 前端：WebhookEventLog 組件 + ProjectDetail「Webhook 日誌」Tab
 - 更新 PROGRESS.md 記錄點
+- 討論記錄中所有功能已完成：報表統計、CI/CD、文件管理、時間線、Webhook
 
 ### 2026-06-01
 - 完成報表與統計功能（8 個 Task）
