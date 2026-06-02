@@ -79,6 +79,7 @@ router.get('/', async (req, res) => {
             plannedHours: t.plannedHours,
             actualHours: t.actualHours,
             dueDate: t.dueDate,
+            startedAt: t.startedAt,
             isOverdue: t.dueDate ? new Date(t.dueDate) < now : false,
             projectName: t.project?.name || '-',
             projectId: t.project?.id,

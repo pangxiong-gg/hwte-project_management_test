@@ -9,6 +9,7 @@
       <div style="display: flex; gap: 0; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
         <n-button :type="viewMode === 'cards' ? 'primary' : 'default'" size="small" @click="viewMode = 'cards'">卡片</n-button>
         <n-button :type="viewMode === 'chart' ? 'primary' : 'default'" size="small" @click="viewMode = 'chart'">圖表</n-button>
+        <n-button :type="viewMode === 'timeline' ? 'primary' : 'default'" size="small" @click="viewMode = 'timeline'">時間軸</n-button>
       </div>
     </div>
 
@@ -149,6 +150,55 @@
       </div>
     </div>
 
+    <!-- Timeline View -->
+    <div v-else class="timeline-container">
+      <div class="timeline-header">
+        <div class="timeline-member-col">成員</div>
+        <div class="timeline-dates">
+          <div
+            v-for="(date, idx) in timelineDates"
+            :key="idx"
+            class="timeline-date-cell"
+            :class="{ today: date.isToday }"
+          >
+            <div class="timeline-date-day">{{ date.day }}</div>
+            <div v-if="date.isToday" class="timeline-date-today">今天</div>
+          </div>
+        </div>
+      </div>
+      <div class="timeline-body">
+        <div v-for="m in members" :key="m.id" class="timeline-row">
+          <div class="timeline-member-info">
+            <div class="timeline-avatar">{{ m.name.charAt(0) }}</div>
+            <div class="timeline-member-detail">
+              <div class="timeline-member-name">{{ m.name }}</div>
+              <div class="timeline-member-load" :class="{ overload: m.isOverloaded, warning: m.isWarning }">
+                {{ m.plannedHours }}h / 40h
+                <span v-if="m.isOverloaded"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><triangle points="12 2 22 22 2 22"/></svg></span>
+                <span v-else-if="m.isWarning"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><zap points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg></span>
+                <span v-else><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></span>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-track">
+            <div
+              v-for="task in getTimelineTasks(m.tasks)"
+              :key="task.id"
+              class="timeline-task-bar"
+              :style="{
+                left: task.left + '%',
+                width: task.width + '%',
+                backgroundColor: task.color,
+              }"
+              :title="task.title"
+            >
+              <span class="timeline-task-text">{{ task.taskCode }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Unassigned Tasks Table -->
     <n-card v-if="unassigned.length > 0" title="未指派任務" size="small" style="margin-top: 20px;">
       <n-data-table :columns="unassignedColumns" :data="unassigned" size="small" />
@@ -174,6 +224,7 @@ interface MemberTask {
   plannedHours: number | null;
   actualHours: number | null;
   dueDate: string | null;
+  startedAt: string | null;
   isOverdue: boolean;
   projectName: string;
   projectId: string;
@@ -209,7 +260,7 @@ const members = ref<Member[]>([]);
 const unassigned = ref<any[]>([]);
 const summary = ref<Summary>({ totalMembers: 0, totalActiveTasks: 0, averageLoad: 0, overloadedCount: 0, warningCount: 0, unassignedCount: 0 });
 const loading = ref(false);
-const viewMode = ref<'cards' | 'chart'>('cards');
+const viewMode = ref<'cards' | 'chart' | 'timeline'>('cards');
 
 const overloadedMembers = computed(() => members.value.filter((m) => m.isOverloaded));
 const warningMembers = computed(() => members.value.filter((m) => m.isWarning));
@@ -218,6 +269,81 @@ function getLoadClass(pct: number): string {
   if (pct > 100) return 'danger';
   if (pct >= 80) return 'warning';
   return 'normal';
+}
+
+// 時間軸：從今天開始的 14 天
+const TIMELINE_DAYS = 14;
+const timelineStart = computed(() => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+});
+const timelineEnd = computed(() => {
+  const d = new Date(timelineStart.value);
+  d.setDate(d.getDate() + TIMELINE_DAYS - 1);
+  d.setHours(23, 59, 59, 999);
+  return d;
+});
+
+const timelineDates = computed(() => {
+  const dates = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  for (let i = 0; i < TIMELINE_DAYS; i++) {
+    const d = new Date(timelineStart.value);
+    d.setDate(d.getDate() + i);
+    const isToday = d.getTime() === today.getTime();
+    dates.push({
+      day: `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`,
+      isToday,
+    });
+  }
+  return dates;
+});
+
+function getTimelineTasks(tasks: MemberTask[]) {
+  const colors: Record<string, string> = {
+    TODO: '#94a3b8',
+    IN_PROGRESS: '#3b82f6',
+    CODE_REVIEW: '#8b5cf6',
+    TESTING: '#f59e0b',
+    DONE: '#22c55e',
+  };
+  return tasks
+    .filter((t) => t.status !== 'DONE')
+    .map((t) => {
+      const start = t.startedAt ? new Date(t.startedAt) : new Date();
+      const end = t.dueDate ? new Date(t.dueDate) : new Date(start.getTime() + 86400000);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+
+      const totalMs = timelineEnd.value.getTime() - timelineStart.value.getTime();
+      let leftMs = start.getTime() - timelineStart.value.getTime();
+      let widthMs = end.getTime() - start.getTime();
+
+      // 裁剪到時間軸範圍
+      if (leftMs < 0) {
+        widthMs += leftMs;
+        leftMs = 0;
+      }
+      if (leftMs + widthMs > totalMs) {
+        widthMs = totalMs - leftMs;
+      }
+      if (widthMs < 0) widthMs = 0;
+
+      const left = (leftMs / totalMs) * 100;
+      const width = Math.max((widthMs / totalMs) * 100, 2); // 最小 2%
+
+      return {
+        id: t.id,
+        taskCode: t.taskCode,
+        title: `${t.taskCode}: ${t.title} (${t.projectName})`,
+        left,
+        width,
+        color: colors[t.status] || '#64748b',
+      };
+    })
+    .filter((t) => t.width > 0);
 }
 
 const unassignedColumns = [
@@ -391,4 +517,144 @@ onMounted(loadData);
 }
 .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #64748b; }
 .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+/* Timeline View */
+.timeline-container {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+.timeline-header {
+  display: flex;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+.timeline-member-col {
+  width: 180px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  border-right: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+.timeline-dates {
+  display: flex;
+  flex: 1;
+}
+.timeline-date-cell {
+  flex: 1;
+  padding: 8px 2px;
+  text-align: center;
+  border-right: 1px solid #e2e8f0;
+  font-size: 11px;
+  color: #94a3b8;
+  min-width: 36px;
+}
+.timeline-date-cell.today {
+  background: #eff6ff;
+  color: #3b82f6;
+  font-weight: 600;
+}
+.timeline-date-cell:last-child {
+  border-right: none;
+}
+.timeline-date-today {
+  font-size: 10px;
+  color: #3b82f6;
+}
+
+.timeline-body {
+  display: flex;
+  flex-direction: column;
+}
+.timeline-row {
+  display: flex;
+  border-bottom: 1px solid #f1f5f9;
+  min-height: 56px;
+  align-items: center;
+}
+.timeline-row:last-child {
+  border-bottom: none;
+}
+.timeline-member-info {
+  width: 180px;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-right: 1px solid #f1f5f9;
+  flex-shrink: 0;
+}
+.timeline-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1a1a2e;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.timeline-member-detail {
+  flex: 1;
+  min-width: 0;
+}
+.timeline-member-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+}
+.timeline-member-load {
+  font-size: 11px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.timeline-member-load.overload {
+  color: #ef4444;
+}
+.timeline-member-load.warning {
+  color: #f59e0b;
+}
+
+.timeline-track {
+  flex: 1;
+  position: relative;
+  height: 40px;
+  margin: 0 8px;
+}
+.timeline-task-bar {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  color: white;
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.timeline-task-bar:hover {
+  opacity: 0.9;
+  transform: translateY(-50%) scale(1.02);
+  z-index: 10;
+}
+.timeline-task-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 </style>
