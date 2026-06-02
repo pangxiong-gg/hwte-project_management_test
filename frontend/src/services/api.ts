@@ -141,4 +141,9 @@ export const documentApi = {
     api.get(`/projects/${projectId}/documents/${id}/download`, { responseType: 'blob' }),
 };
 
+export const webhookApi = {
+  getEvents: (projectId: string) =>
+    api.get<WebhookEvent[]>(`/projects/${projectId}/webhook-events`),
+};
+
 export default api;

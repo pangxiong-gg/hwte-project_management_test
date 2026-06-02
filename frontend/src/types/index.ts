@@ -244,3 +244,15 @@ export interface Document {
   createdAt: string;
   uploadedBy?: { id: string; name: string };
 }
+
+export interface WebhookEvent {
+  id: string;
+  projectId: string;
+  eventType: string;
+  action?: string;
+  payload: string;
+  status: string;
+  errorMsg?: string;
+  taskIds?: string;
+  createdAt: string;
+}
