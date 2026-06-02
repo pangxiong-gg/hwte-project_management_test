@@ -152,4 +152,8 @@ export const myTaskApi = {
   updateHours: (id: string, actualHours: number | null) => api.put(`/my-tasks/${id}/hours`, { actualHours }),
 };
 
+export const resourceLoadApi = {
+  getAll: () => api.get<{ members: any[]; unassigned: any[]; summary: any }>('/resource-load'),
+};
+
 export default api;

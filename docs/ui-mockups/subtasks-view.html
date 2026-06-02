@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>子任務分解 — UI 原型</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #f5f7fa;
+      color: #1a1a1a;
+      padding: 24px;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+
+    .page-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+    .page-subtitle { font-size: 14px; color: #64748b; margin-bottom: 20px; }
+
+    /* Parent Task Card */
+    .parent-task {
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .parent-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    .parent-title-section {
+      flex: 1;
+    }
+    .parent-code { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+    .parent-title { font-size: 18px; font-weight: 600; }
+    .parent-progress-section {
+      text-align: right;
+    }
+    .parent-progress-label { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+    .parent-progress-value { font-size: 24px; font-weight: 600; color: #10b981; }
+    .progress-bar {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #10b981;
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+
+    /* Subtasks Card */
+    .subtasks-card {
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      padding: 20px;
+    }
+    .subtasks-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .subtasks-title { font-size: 16px; font-weight: 600; }
+    .add-btn {
+      padding: 6px 16px;
+      background: #1a1a2e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    /* Subtask Tree */
+    .subtask-list { list-style: none; }
+    .subtask-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .subtask-item:last-child { border-bottom: none; }
+
+    /* Tree connector lines */
+    .tree-indent {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 24px;
+      flex-shrink: 0;
+    }
+    .tree-line-v {
+      width: 1px;
+      background: #e2e8f0;
+      flex: 1;
+    }
+    .tree-line-h {
+      width: 12px;
+      height: 1px;
+      background: #e2e8f0;
+    }
+    .tree-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #cbd5e1;
+    }
+
+    .subtask-checkbox {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .subtask-info { flex: 1; min-width: 0; }
+    .subtask-title {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .subtask-title.done { text-decoration: line-through; color: #94a3b8; }
+    .subtask-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .subtask-assignee {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .subtask-avatar {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #1a1a2e;
+      color: white;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .subtask-status {
+      padding: 2px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .status-todo { background: #fef3c7; color: #92400e; }
+    .status-doing { background: #dbeafe; color: #1e40af; }
+    .status-done { background: #d1fae5; color: #065f46; }
+
+    .subtask-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .subtask-action {
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .subtask-action:hover { background: #f1f5f9; }
+
+    /* Nested subtask */
+    .nested-subtasks {
+      margin-left: 36px;
+      border-left: 1px solid #e2e8f0;
+      padding-left: 12px;
+    }
+    .nested-subtasks .subtask-item {
+      padding: 8px 0;
+    }
+
+    /* Add subtask form */
+    .add-subtask-form {
+      display: flex;
+      gap: 12px;
+      padding: 12px 0;
+      border-top: 1px solid #f1f5f9;
+      margin-top: 8px;
+    }
+    .add-subtask-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .add-subtask-input:focus { outline: none; border-color: #1a1a2e; }
+
+    /* Empty state */
+    .empty-subtasks {
+      text-align: center;
+      padding: 40px 20px;
+      color: #94a3b8;
+    }
+    .empty-subtasks .title { font-size: 14px; color: #64748b; margin-bottom: 8px; }
+
+    /* Collapse toggle */
+    .collapse-btn {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+    .collapse-btn:hover { background: #f1f5f9; }
+
+    /* Variant B: Board View */
+    .board-view {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .board-column {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .board-column-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .board-card {
+      background: white;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 8px;
+      border: 1px solid #e2e8f0;
+    }
+    .board-card-title { font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+    .board-card-meta { font-size: 11px; color: #94a3b8; }
+    .board-card-subcount {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid #f1f5f9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="page-title">子任務分解</div>
+    <div class="page-subtitle">將大任務拆分成可管理的子任務</div>
+
+    <!-- Parent Task -->
+    <div class="parent-task">
+      <div class="parent-header">
+        <div class="parent-title-section">
+          <div class="parent-code">TASK-006 · 數位化專案管理系統</div>
+          <div class="parent-title">看板視圖優化</div>
+        </div>
+        <div class="parent-progress-section">
+          <div class="parent-progress-label">子任務完成度</div>
+          <div class="parent-progress-value">60%</div>
+        </div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: 60%;"></div>
+      </div>
+    </div>
+
+    <!-- Subtasks -->
+    <div class="subtasks-card">
+      <div class="subtasks-header">
+        <span class="subtasks-title">子任務 (5)</span>
+        <button class="add-btn">+ 新增子任務</button>
+      </div>
+
+      <ul class="subtask-list">
+        <!-- Subtask 1 -->
+        <li class="subtask-item">
+          <div class="collapse-btn">−</div>
+          <input type="checkbox" class="subtask-checkbox" checked>
+          <div class="subtask-info">
+            <div class="subtask-title done">設計拖拽交互流程</div>
+            <div class="subtask-meta">
+              <span class="subtask-assignee">
+                <span class="subtask-avatar">張</span> 張小芳
+              </span>
+              <span>截止: 06/01</span>
+            </div>
+          </div>
+          <span class="subtask-status status-done">已完成</span>
+        </li>
+
+        <!-- Subtask 2 -->
+        <li class="subtask-item">
+          <div class="collapse-btn">−</div>
+          <input type="checkbox" class="subtask-checkbox" checked>
+          <div class="subtask-info">
+            <div class="subtask-title done">實現 HTML5 Drag & Drop API</div>
+            <div class="subtask-meta">
+              <span class="subtask-assignee">
+                <span class="subtask-avatar">王</span> 王小明
+              </span>
+              <span>截止: 06/02</span>
+            </div>
+          </div>
+          <span class="subtask-status status-done">已完成</span>
+        </li>
+
+        <!-- Subtask 3 with nested -->
+        <li class="subtask-item">
+          <div class="collapse-btn">−</div>
+          <input type="checkbox" class="subtask-checkbox">
+          <div class="subtask-info">
+            <div class="subtask-title">優化拖拽動畫效果</div>
+            <div class="subtask-meta">
+              <span class="subtask-assignee">
+                <span class="subtask-avatar">王</span> 王小明
+              </span>
+              <span>截止: 06/04</span>
+            </div>
+          </div>
+          <span class="subtask-status status-doing">進行中</span>
+        </li>
+
+        <!-- Subtask 4 -->
+        <li class="subtask-item">
+          <div class="collapse-btn">+</div>
+          <input type="checkbox" class="subtask-checkbox">
+          <div class="subtask-info">
+            <div class="subtask-title">跨瀏覽器兼容性測試</div>
+            <div class="subtask-meta">
+              <span class="subtask-assignee">
+                <span class="subtask-avatar">林</span> 林小美
+              </span>
+              <span>截止: 06/05</span>
+            </div>
+          </div>
+          <span class="subtask-status status-todo">待辦</span>
+        </li>
+
+        <!-- Subtask 5 -->
+        <li class="subtask-item">
+          <div class="collapse-btn">+</div>
+          <input type="checkbox" class="subtask-checkbox">
+          <div class="subtask-info">
+            <div class="subtask-title">撰寫技術文檔</div>
+            <div class="subtask-meta">
+              <span class="subtask-assignee">未指派</span>
+              <span>截止: 06/06</span>
+            </div>
+          </div>
+          <span class="subtask-status status-todo">待辦</span>
+          <div class="subtask-actions">
+            <button class="subtask-action">指派</button>
+          </div>
+        </li>
+      </ul>
+
+      <!-- Add Form -->
+      <div class="add-subtask-form">
+        <input type="text" class="add-subtask-input" placeholder="輸入子任務標題...">
+        <button class="add-btn">添加</button>
+      </div>
+    </div>
+
+    <hr style="margin: 40px 0; border: none; border-top: 2px dashed #cbd5e1;">
+
+    <!-- Variant B: Board View with Parent-Child -->
+    <div style="margin-bottom: 16px;">
+      <div style="font-size: 18px; font-weight: 600;">看板視圖（含子任務標記）</div>
+      <div style="font-size: 13px; color: #64748b;">父任務卡片顯示子任務完成數量</div>
+    </div>
+    <div class="board-view">
+      <div class="board-column">
+        <div class="board-column-header">
+          <span>待辦</span>
+          <span style="font-size: 12px; color: #64748b;">3</span>
+        </div>
+        <div class="board-card">
+          <div class="board-card-title">TASK-006 看板視圖優化</div>
+          <div class="board-card-meta">P0 · 王小明</div>
+          <div class="board-card-subcount">✓ 2/5 子任務已完成</div>
+        </div>
+        <div class="board-card">
+          <div class="board-card-title">TASK-009 Bug 趨勢圖表</div>
+          <div class="board-card-meta">P2 · 李小華</div>
+          <div class="board-card-subcount">0/3 子任務</div>
+        </div>
+      </div>
+      <div class="board-column">
+        <div class="board-column-header">
+          <span>進行中</span>
+          <span style="font-size: 12px; color: #64748b;">2</span>
+        </div>
+        <div class="board-card">
+          <div class="board-card-title">TASK-008 報表導出</div>
+          <div class="board-card-meta">P1 · 李小華</div>
+          <div class="board-card-subcount">✓ 3/4 子任務已完成</div>
+        </div>
+      </div>
+      <div class="board-column">
+        <div class="board-column-header">
+          <span>已完成</span>
+          <span style="font-size: 12px; color: #64748b;">1</span>
+        </div>
+        <div class="board-card" style="opacity: 0.7;">
+          <div class="board-card-title">TASK-001 專案創建 API</div>
+          <div class="board-card-meta">P1 · 陳大偉</div>
+          <div class="board-card-subcount">✓ 5/5 子任務已完成</div>
+        </div>
+      </div>
+    </div>
+
+    <hr style="margin: 40px 0; border: none; border-top: 2px dashed #cbd5e1;">
+
+    <!-- Auto-complete behavior note -->
+    <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px 20px; margin-top: 24px;">
+      <div style="font-weight: 600; font-size: 14px; margin-bottom: 8px; color: #1d4ed8;">自動完成規則</div>
+      <div style="font-size: 13px; color: #1e40af; line-height: 1.6;">
+        • 當所有子任務標記為「已完成」時，父任務自動標記為「已完成」<br>
+        • 子任務的優先級繼承父任務（可單獨覆蓋）<br>
+        • 子任務截止日不可晚於父任務截止日<br>
+        • 父任務工時 = 所有子任務工時總和
+      </div>
+    </div>
+  </div>
+</body>
+</html>

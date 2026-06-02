@@ -30,6 +30,11 @@ const router = createRouter({
           component: () => import('../views/MyTasks.vue'),
         },
         {
+          path: 'resource-load',
+          name: 'ResourceLoad',
+          component: () => import('../views/ResourceLoad.vue'),
+        },
+        {
           path: 'profile',
           name: 'Profile',
           component: () => import('../views/Profile.vue'),

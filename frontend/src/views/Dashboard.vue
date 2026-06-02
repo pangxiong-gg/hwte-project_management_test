@@ -264,6 +264,11 @@ const menuOptions = computed(() => {
       key: '/my-tasks',
       icon: renderIcon('&#9989;'),
     },
+    {
+      label: '資源負載',
+      key: '/resource-load',
+      icon: renderIcon('&#128200;'),
+    },
   ];
   if (authStore.user?.role === 'ADMIN') {
     items.push({

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>任務評論 — UI 原型</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #f5f7fa;
+      color: #1a1a1a;
+      padding: 24px;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+
+    /* Task Detail Header */
+    .task-header {
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .task-meta-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .task-code { font-size: 12px; color: #64748b; }
+    .task-title { font-size: 18px; font-weight: 600; }
+    .task-desc { font-size: 14px; color: #64748b; line-height: 1.6; margin-top: 8px; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 16px;
+    }
+    .tab {
+      padding: 10px 20px;
+      font-size: 14px;
+      color: #64748b;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .tab.active {
+      color: #1a1a2e;
+      border-bottom-color: #1a1a2e;
+      font-weight: 500;
+    }
+    .tab-badge {
+      background: #e2e8f0;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      margin-left: 6px;
+    }
+
+    /* Comments Section */
+    .comments-card {
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      padding: 20px;
+    }
+    .comments-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .comments-title { font-size: 16px; font-weight: 600; }
+
+    /* Comment Item */
+    .comment {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .comment:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .comment-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #1a1a2e;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .comment-body { flex: 1; }
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .comment-author { font-weight: 600; font-size: 14px; }
+    .comment-time { font-size: 12px; color: #94a3b8; }
+    .comment-text { font-size: 14px; line-height: 1.6; color: #334155; }
+    .comment-actions {
+      display: flex;
+      gap: 16px;
+      margin-top: 8px;
+    }
+    .comment-action {
+      font-size: 12px;
+      color: #64748b;
+      cursor: pointer;
+    }
+    .comment-action:hover { color: #1a1a2e; }
+
+    /* Mention highlight */
+    .mention {
+      background: #dbeafe;
+      color: #1d4ed8;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    /* Reply (nested) */
+    .reply {
+      margin-left: 48px;
+      margin-top: 12px;
+      padding: 12px;
+      background: #f8fafc;
+      border-radius: 8px;
+    }
+
+    /* Comment Input */
+    .comment-input-area {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e2e8f0;
+    }
+    .comment-input-box {
+      flex: 1;
+    }
+    .comment-textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      resize: vertical;
+      font-family: inherit;
+    }
+    .comment-textarea:focus {
+      outline: none;
+      border-color: #1a1a2e;
+    }
+    .comment-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .comment-hint { font-size: 12px; color: #94a3b8; }
+    .comment-submit {
+      padding: 6px 20px;
+      background: #1a1a2e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    /* Activity timeline variant */
+    .activity-item {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .activity-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #cbd5e1;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .activity-dot.status-change { background: #3b82f6; }
+    .activity-dot.assigned { background: #f59e0b; }
+    .activity-dot.completed { background: #10b981; }
+    .activity-text { font-size: 13px; color: #64748b; }
+    .activity-text strong { color: #334155; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Task Header -->
+    <div class="task-header">
+      <div class="task-meta-row">
+        <span class="task-code">TASK-006</span>
+        <span style="color: #e2e8f0;">|</span>
+        <span style="font-size: 12px; padding: 2px 8px; background: #dbeafe; color: #1e40af; border-radius: 4px;">進行中</span>
+        <span style="font-size: 12px; padding: 2px 8px; background: #fee2e2; color: #991b1b; border-radius: 4px;">P0</span>
+      </div>
+      <div class="task-title">看板視圖優化</div>
+      <div class="task-desc">實現拖拽排序功能，支援跨欄位移動任務卡片。需考慮瀑布式與敏捷式兩種模式的欄位定義差異。</div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab">詳情</div>
+      <div class="tab active">討論 <span class="tab-badge">5</span></div>
+      <div class="tab">活動紀錄</div>
+      <div class="tab">子任務</div>
+    </div>
+
+    <!-- Comments -->
+    <div class="comments-card">
+      <div class="comments-header">
+        <span class="comments-title">討論</span>
+      </div>
+
+      <!-- Comment 1 -->
+      <div class="comment">
+        <div class="comment-avatar">張</div>
+        <div class="comment-body">
+          <div class="comment-header">
+            <span class="comment-author">張小芳</span>
+            <span class="comment-time">2 小時前</span>
+          </div>
+          <div class="comment-text">
+            <span class="mention">@王小明</span> 這個需求我測試了一下，拖拽在 Firefox 上有點卡頓，建議用 <code style="background: #f1f5f9; padding: 1px 4px; border-radius: 3px;">pointer-events: none</code> 優化。
+          </div>
+          <div class="comment-actions">
+            <span class="comment-action">回覆</span>
+            <span class="comment-action">編輯</span>
+            <span class="comment-action">刪除</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comment 2 -->
+      <div class="comment">
+        <div class="comment-avatar">王</div>
+        <div class="comment-body">
+          <div class="comment-header">
+            <span class="comment-author">王小明</span>
+            <span class="comment-time">1 小時前</span>
+          </div>
+          <div class="comment-text">
+            收到，我來處理。另外 <span class="mention">@李小華</span> 你負責的排序 API 什麼時候可以好？前端這邊等你的接口。
+          </div>
+          <div class="comment-actions">
+            <span class="comment-action">回覆</span>
+            <span class="comment-action">編輯</span>
+          </div>
+
+          <!-- Reply -->
+          <div class="reply">
+            <div class="comment-header">
+              <span class="comment-author">李小華</span>
+              <span class="comment-time">30 分鐘前</span>
+            </div>
+            <div class="comment-text">
+              預計今天下午可以提 PR，API 設計文件已更新到 Confluence。
+            </div>
+            <div class="comment-actions">
+              <span class="comment-action">回覆</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comment 3 -->
+      <div class="comment">
+        <div class="comment-avatar">陳</div>
+        <div class="comment-body">
+          <div class="comment-header">
+            <span class="comment-author">陳大偉</span>
+            <span class="comment-time">昨天</span>
+          </div>
+          <div class="comment-text">
+            建議參考 Trello 的拖拽體驗，他們的 ghost card 做得蠻好的。可以借鑑一下動畫效果。
+          </div>
+          <div class="comment-actions">
+            <span class="comment-action">回覆</span>
+            <span class="comment-action">編輯</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input -->
+      <div class="comment-input-area">
+        <div class="comment-avatar">我</div>
+        <div class="comment-input-box">
+          <textarea class="comment-textarea" placeholder="輸入評論... 使用 @ 提及成員"></textarea>
+          <div class="comment-toolbar">
+            <span class="comment-hint">支援 Markdown 語法 · 按 Enter 發送 · Shift+Enter 換行</span>
+            <button class="comment-submit">發送</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr style="margin: 40px 0; border: none; border-top: 2px dashed #cbd5e1;">
+
+    <!-- Activity Tab (alternative view) -->
+    <div style="margin-bottom: 16px;">
+      <div style="font-size: 18px; font-weight: 600;">活動紀錄 Tab（變體）</div>
+    </div>
+    <div class="comments-card">
+      <div class="comments-header">
+        <span class="comments-title">活動紀錄</span>
+      </div>
+      <div class="activity-item">
+        <div class="activity-dot status-change"></div>
+        <div class="activity-text"><strong>王小明</strong> 將狀態從「待辦」改為「進行中」— 2 小時前</div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-dot assigned"></div>
+        <div class="activity-text"><strong>王小明</strong> 指派給 <strong>李小華</strong> — 昨天</div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-dot completed"></div>
+        <div class="activity-text"><strong>張小芳</strong> 完成了測試用例 TASK-011 — 2 天前</div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-dot"></div>
+        <div class="activity-text"><strong>王小明</strong> 創建了此任務 — 3 天前</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
