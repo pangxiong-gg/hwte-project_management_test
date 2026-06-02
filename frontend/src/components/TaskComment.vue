@@ -2,60 +2,19 @@
   <div>
     <!-- Comments List -->
     <div v-if="comments.length > 0" class="comments-list">
-      <div v-for="comment in comments" :key="comment.id" class="comment">
-        <div class="comment-avatar">{{ getInitial(comment.user?.name) }}</div>
-        <div class="comment-body">
-          <div class="comment-header">
-            <span class="comment-author">{{ comment.user?.name || '未知用戶' }}</span>
-            <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
-          </div>
-          <div class="comment-text" v-html="renderMentions(comment.content)"></div>
-          <div class="comment-actions">
-            <span class="comment-action" @click="startReply(comment)">回覆</span>
-            <template v-if="comment.user?.id === currentUserId">
-              <span class="comment-action" @click="startEdit(comment)">編輯</span>
-              <span class="comment-action" @click="deleteComment(comment.id)">刪除</span>
-            </template>
-          </div>
-
-          <!-- Replies -->
-          <div v-if="comment.replies?.length > 0" class="replies">
-            <div v-for="reply in comment.replies" :key="reply.id" class="reply-item">
-              <div class="reply-avatar">{{ getInitial(reply.user?.name) }}</div>
-              <div class="reply-body">
-                <div class="comment-header">
-                  <span class="comment-author">{{ reply.user?.name || '未知用戶' }}</span>
-                  <span class="comment-time">{{ formatTime(reply.createdAt) }}</span>
-                </div>
-                <div class="comment-text" v-html="renderMentions(reply.content)"></div>
-                <div class="comment-actions">
-                  <template v-if="reply.user?.id === currentUserId">
-                    <span class="comment-action" @click="startEdit(reply)">編輯</span>
-                    <span class="comment-action" @click="deleteComment(reply.id)">刪除</span>
-                  </template>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Reply Input -->
-          <div v-if="replyingTo === comment.id" class="reply-input-area">
-            <textarea
-              v-model="replyForm.content"
-              class="reply-textarea"
-              :placeholder="`回覆 ${comment.user?.name}...`"
-              @keydown.enter.prevent="submitReply"
-            ></textarea>
-            <div class="reply-toolbar">
-              <span class="reply-hint">按 Enter 發送 · Shift+Enter 換行</span>
-              <n-space>
-                <n-button size="small" @click="cancelReply">取消</n-button>
-                <n-button size="small" type="primary" :loading="submitting" @click="submitReply">發送</n-button>
-              </n-space>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CommentItem
+        v-for="comment in comments"
+        :key="comment.id"
+        :comment="comment"
+        :replying-to="replyingTo"
+        :editing-comment="editingComment"
+        :current-user-id="currentUserId"
+        @reply="startReply"
+        @edit="startEdit"
+        @delete="deleteComment"
+        @submit-reply="handleSubmitReply"
+        @cancel-reply="cancelReply"
+      />
     </div>
 
     <n-empty v-else description="暫無評論" style="padding: 40px 0;" />
@@ -95,6 +54,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useMessage, NButton, NSpace, NEmpty } from 'naive-ui';
 import { commentApi } from '../services/api';
+import CommentItem from './CommentItem.vue';
 
 const props = defineProps<{
   projectId: string;
@@ -112,7 +72,6 @@ const comments = ref<any[]>([]);
 const loading = ref(false);
 const submitting = ref(false);
 const form = ref({ content: '' });
-const replyForm = ref({ content: '', parentId: '' });
 const editForm = ref({ content: '', id: '' });
 const replyingTo = ref<string | null>(null);
 const editingComment = ref<string | null>(null);
@@ -143,23 +102,8 @@ function getInitial(name: string | undefined): string {
   return (name || 'U').charAt(0);
 }
 
-function formatTime(dateStr: string): string {
-  const d = new Date(dateStr);
-  const now = new Date();
-  const diff = Math.floor((now.getTime() - d.getTime()) / 1000);
-  if (diff < 60) return '剛剛';
-  if (diff < 3600) return `${Math.floor(diff / 60)} 分鐘前`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} 小時前`;
-  if (diff < 604800) return `${Math.floor(diff / 86400)} 天前`;
-  return d.toLocaleDateString('zh-TW', { month: 'short', day: 'numeric' });
-}
-
-function renderMentions(content: string): string {
-  return content
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/@([^\s]+)/g, '<span class="mention-highlight">@$1</span>');
+function countAllComments(list: any[]): number {
+  return list.reduce((sum, c) => sum + 1 + countAllComments(c.replies || []), 0);
 }
 
 async function loadComments() {
@@ -167,8 +111,7 @@ async function loadComments() {
   try {
     const res = await commentApi.getAll(props.projectId, props.relatedType, props.relatedId);
     comments.value = res.data.comments || [];
-    const totalCount = comments.value.reduce((sum: number, c: any) => sum + 1 + (c.replies?.length || 0), 0);
-    emit('countChange', totalCount);
+    emit('countChange', countAllComments(comments.value));
   } catch (err: any) {
     message.error('載入評論失敗：' + (err.response?.data?.error || err.message));
   } finally {
@@ -196,27 +139,24 @@ async function submitComment() {
 
 function startReply(comment: any) {
   replyingTo.value = comment.id;
-  replyForm.value = { content: '', parentId: comment.id };
   editingComment.value = null;
 }
 
 function cancelReply() {
   replyingTo.value = null;
-  replyForm.value = { content: '', parentId: '' };
 }
 
-async function submitReply() {
-  if (!replyForm.value.content.trim()) return;
+async function handleSubmitReply(data: { content: string; parentId: string }) {
+  if (!data.content.trim()) return;
   submitting.value = true;
   try {
     await commentApi.create(props.projectId, {
-      content: replyForm.value.content,
+      content: data.content,
       relatedType: props.relatedType,
       relatedId: props.relatedId,
-      parentId: replyForm.value.parentId,
+      parentId: data.parentId,
     });
     replyingTo.value = null;
-    replyForm.value = { content: '', parentId: '' };
     loadComments();
   } catch (err: any) {
     message.error('發送失敗：' + (err.response?.data?.error || err.message));
@@ -265,66 +205,7 @@ onMounted(loadComments);
 
 <style scoped>
 .comments-list { margin-bottom: 16px; }
-.comment {
-  display: flex;
-  gap: 12px;
-  padding: 14px 0;
-  border-bottom: 1px solid #f1f5f9;
-}
-.comment:last-child { border-bottom: none; }
-.comment-avatar, .reply-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #1a1a2e;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 14px;
-  flex-shrink: 0;
-}
-.reply-avatar { width: 28px; height: 28px; font-size: 12px; }
-.comment-body { flex: 1; }
-.comment-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-.comment-author { font-weight: 600; font-size: 14px; }
-.comment-time { font-size: 12px; color: #94a3b8; }
-.comment-text { font-size: 14px; line-height: 1.6; color: #334155; }
-:deep(.mention-highlight) {
-  background: #dbeafe;
-  color: #1d4ed8;
-  padding: 1px 4px;
-  border-radius: 4px;
-  font-size: 13px;
-}
-.comment-actions {
-  display: flex;
-  gap: 14px;
-  margin-top: 6px;
-}
-.comment-action {
-  font-size: 12px;
-  color: #64748b;
-  cursor: pointer;
-}
-.comment-action:hover { color: #1a1a2e; }
-
-.replies { margin-top: 12px; padding-left: 8px; }
-.reply-item {
-  display: flex;
-  gap: 8px;
-  padding: 10px 0;
-  border-top: 1px solid #f1f5f9;
-}
-.reply-body { flex: 1; }
-
-.comment-input-area, .reply-input-area {
+.comment-input-area {
   display: flex;
   gap: 12px;
   padding-top: 16px;
@@ -344,7 +225,7 @@ onMounted(loadComments);
   flex-shrink: 0;
 }
 .comment-input-box { flex: 1; }
-.comment-textarea, .reply-textarea {
+.comment-textarea {
   width: 100%;
   min-height: 72px;
   padding: 10px 12px;
@@ -354,16 +235,15 @@ onMounted(loadComments);
   resize: vertical;
   font-family: inherit;
 }
-.comment-textarea:focus, .reply-textarea:focus {
+.comment-textarea:focus {
   outline: none;
   border-color: #1a1a2e;
 }
-.reply-textarea { min-height: 56px; }
-.comment-toolbar, .reply-toolbar {
+.comment-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 6px;
 }
-.comment-hint, .reply-hint { font-size: 12px; color: #94a3b8; }
+.comment-hint { font-size: 12px; color: #94a3b8; }
 </style>

@@ -16,24 +16,35 @@ router.get('/', async (req, res) => {
     if (relatedType) where.relatedType = relatedType as string;
     if (relatedId) where.relatedId = relatedId as string;
 
-    // 只取頂層評論（parentId 為 null）
-    where.parentId = null;
-
-    const comments = await prisma.comment.findMany({
+    // 一次性獲取所有評論
+    const allComments = await prisma.comment.findMany({
       where,
       include: {
         user: { select: { id: true, name: true } },
-        replies: {
-          include: {
-            user: { select: { id: true, name: true } },
-          },
-          orderBy: { createdAt: 'asc' },
-        },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'asc' },
     });
 
-    res.json({ comments });
+    // 構建評論樹
+    const commentMap = new Map(allComments.map((c) => [c.id, { ...c, replies: [] as any[] }]));
+    const rootComments: any[] = [];
+
+    for (const comment of allComments) {
+      const node = commentMap.get(comment.id);
+      if (comment.parentId) {
+        const parent = commentMap.get(comment.parentId);
+        if (parent) {
+          parent.replies.push(node);
+        }
+      } else {
+        rootComments.push(node);
+      }
+    }
+
+    // 頂層按時間倒序
+    rootComments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    res.json({ comments: rootComments });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

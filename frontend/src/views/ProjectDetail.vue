@@ -915,10 +915,21 @@ async function loadData() {
     bugs.value = bugRes.data;
     users.value = userRes.data;
     testCases.value = tcRes.data;
-    await Promise.all([loadCicd(), loadDocuments(), loadWebhookEvents()]);
+    await Promise.all([loadCicd(), loadDocuments(), loadWebhookEvents(), loadCommentCount()]);
   } catch (error) {
     console.error('Failed to load project details:', error);
     message.error('載入專案資料失敗');
+  }
+}
+
+// 預加載評論數量
+async function loadCommentCount() {
+  try {
+    const res = await commentApi.getAll(projectId, 'PROJECT', projectId);
+    const comments = res.data.comments || [];
+    commentCount.value = comments.reduce((sum: number, c: any) => sum + 1 + (c.replies?.length || 0), 0);
+  } catch (error) {
+    // silent
   }
 }
 
