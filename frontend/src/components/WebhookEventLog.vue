@@ -14,7 +14,7 @@ import { h } from 'vue';
 import type { WebhookEvent } from '../types';
 import { NDataTable, NTag } from 'naive-ui';
 
-const props = defineProps<{
+defineProps<{
   events: WebhookEvent[];
 }>();
 
@@ -32,8 +32,8 @@ function eventTypeLabel(type: string): string {
   return map[type] || type;
 }
 
-function eventTypeTagType(type: string) {
-  const map: Record<string, string> = {
+function eventTypeTagType(type: string): 'info' | 'warning' | 'success' | 'default' {
+  const map: Record<string, 'info' | 'warning' | 'success' | 'default'> = {
     push: 'info',
     pull_request: 'warning',
     workflow_run: 'success',
@@ -41,8 +41,8 @@ function eventTypeTagType(type: string) {
   return map[type] || 'default';
 }
 
-function statusTagType(status: string) {
-  const map: Record<string, string> = {
+function statusTagType(status: string): 'success' | 'warning' | 'error' | 'default' {
+  const map: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
     PROCESSED: 'success',
     PENDING: 'warning',
     ERROR: 'error',

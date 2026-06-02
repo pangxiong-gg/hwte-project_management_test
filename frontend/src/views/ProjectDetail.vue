@@ -159,6 +159,11 @@
           @view-task="handleViewTaskFromTimeline"
         />
       </n-tab-pane>
+
+      <!-- Webhook 日誌 Tab -->
+      <n-tab-pane name="webhooks" tab="Webhook 日誌">
+        <WebhookEventLog :events="webhookEvents" />
+      </n-tab-pane>
     </n-tabs>
 
     <!-- 需求變更歷史 Modal -->
@@ -386,12 +391,13 @@ import { useRoute } from 'vue-router';
 import { useMessage } from 'naive-ui';
 import { NTag, NButton, NSpace, NAlert, NSelect, NTimeline, NTimelineItem, NUpload } from 'naive-ui';
 import type { DataTableColumns } from 'naive-ui';
-import { projectApi, phaseApi, requirementApi, taskApi, bugApi, userApi, requirementChangeApi, testCaseApi, cicdApi, documentApi } from '../services/api';
-import type { Project, ProjectPhase, Requirement, Task, Bug, User, RequirementChange, TestCase, GitHubRun, Document } from '../types';
+import { projectApi, phaseApi, requirementApi, taskApi, bugApi, userApi, requirementChangeApi, testCaseApi, cicdApi, documentApi, webhookApi } from '../services/api';
+import type { Project, ProjectPhase, Requirement, Task, Bug, User, RequirementChange, TestCase, GitHubRun, Document, WebhookEvent } from '../types';
 import { useAuthStore } from '../stores/auth';
 import { canCreateRequirement, canCreateTask, canCreateBug, canManageTestCase, isAdminOrPM } from '../utils/permissions';
 import TaskBoard from '../components/TaskBoard.vue';
 import ProjectTimeline from '../components/ProjectTimeline.vue';
+import WebhookEventLog from '../components/WebhookEventLog.vue';
 
 const route = useRoute();
 const message = useMessage();
@@ -406,6 +412,7 @@ const bugs = ref<Bug[]>([]);
 const users = ref<User[]>([]);
 const testCases = ref<TestCase[]>([]);
 const documents = ref<Document[]>([]);
+const webhookEvents = ref<WebhookEvent[]>([]);
 const requirementChanges = ref<RequirementChange[]>([]);
 const selectedRequirementId = ref<string>('');
 const activeTab = ref('requirements');
@@ -885,7 +892,7 @@ async function loadData() {
     bugs.value = bugRes.data;
     users.value = userRes.data;
     testCases.value = tcRes.data;
-    await Promise.all([loadCicd(), loadDocuments()]);
+    await Promise.all([loadCicd(), loadDocuments(), loadWebhookEvents()]);
   } catch (error) {
     console.error('Failed to load project details:', error);
     message.error('載入專案資料失敗');
@@ -915,6 +922,16 @@ async function loadDocuments() {
     console.error('Failed to load documents:', error);
   } finally {
     loadingDocs.value = false;
+  }
+}
+
+// 載入 Webhook 事件
+async function loadWebhookEvents() {
+  try {
+    const res = await webhookApi.getEvents(projectId);
+    webhookEvents.value = res.data;
+  } catch (error: any) {
+    console.error('Failed to load webhook events:', error);
   }
 }
 

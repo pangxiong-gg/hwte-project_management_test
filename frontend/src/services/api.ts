@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { LoginResponse, Project, ProjectPhase, Requirement, Task, Bug, User, Notification, RequirementChange, TestCase, TestExecution, ProjectProgress, TeamMemberEfficiency, BugTrends, ExportData, Document } from '../types';
+import type { LoginResponse, Project, ProjectPhase, Requirement, Task, Bug, User, Notification, RequirementChange, TestCase, TestExecution, ProjectProgress, TeamMemberEfficiency, BugTrends, ExportData, Document, WebhookEvent } from '../types';
 
 const api = axios.create({
   baseURL: '/api',
