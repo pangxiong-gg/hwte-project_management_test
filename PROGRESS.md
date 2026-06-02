@@ -6,7 +6,7 @@
 
 ## 最後更新
 
-2026-06-01
+2026-06-02
 
 ---
 
@@ -81,6 +81,15 @@
 - [x] Base64 上傳 + 本地文件系統存儲
 - [x] 權限控制（ADMIN/PM 可刪除任何文件）
 
+### 日曆/時間線視圖
+- [x] 專案詳情頁「時間線」Tab
+- [x] 甘特圖（任務時間分佈 + 並行關係）
+- [x] 里程碑標記（階段完成 🟢 / 專案截止 🔴）
+- [x] 今天指示線
+- [x] 負責人頭像 + 進度狀態
+- [x] 任務類型顏色區分（開發/設計/測試/文檔）
+- [x] 純 CSS Flexbox 渲染（無新圖表庫依賴）
+
 ---
 
 ## 數據模型
@@ -108,7 +117,7 @@ Project ─┬─→ Requirement
 |------|------|------|
 | 登入 | /login | JWT 登入 |
 | 專案列表 | / | 專案表格 + 統計概覽 + 報表圖表 |
-| 專案詳情 | /projects/:id | 需求/任務/Bug/測試 Tab |
+| 專案詳情 | /projects/:id | 需求/任務/Bug/測試/時間線 Tab |
 | 個人資料 | /profile | 修改姓名/密碼 |
 | 用戶管理 | /users | ADMIN 專用 |
 
@@ -137,7 +146,7 @@ Project ─┬─→ Requirement
 
 1. **CI/CD 整合** ✅ — GitHub Actions 狀態顯示（只讀）
 2. **文件管理** ✅ — 需求規格書、設計文件上傳
-3. **日曆/時間線視圖** — 里程碑、deadline 視覺化
+3. **日曆/時間線視圖** ✅ — 里程碑、deadline 視覺化
 4. **外部工具整合** — GitHub Webhook、JIRA 同步
 
 ---
@@ -164,6 +173,15 @@ npm run dev          # 開發模式 (PORT 5173)
 ---
 
 ## 會話記錄
+
+### 2026-06-02
+- 完成日曆/時間線視圖功能（5 個 Task）
+- Prisma Schema：Task 新增 `dueDate` 字段
+- 後端 API：taskRoutes 支持 `dueDate`/`startedAt`/`completedAt` + 日期驗證
+- 前端類型：Task 接口補全日期字段
+- 前端組件：ProjectTimeline.vue（里程碑條 + 甘特圖 + 今天線 + 負責人頭像）
+- ProjectDetail：集成「時間線」Tab
+- 更新 PROGRESS.md 記錄點
 
 ### 2026-06-01
 - 完成報表與統計功能（8 個 Task）
