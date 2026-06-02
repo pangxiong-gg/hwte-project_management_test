@@ -184,6 +184,11 @@
           @refresh="loadProjectData"
         />
       </n-tab-pane>
+
+      <!-- 標籤 Tab -->
+      <n-tab-pane name="tags" tab="標籤">
+        <TagManager :project-id="projectId" />
+      </n-tab-pane>
     </n-tabs>
 
     <!-- 需求變更歷史 Modal -->
@@ -224,6 +229,9 @@
         </n-form-item>
         <n-form-item label="類型" path="type">
           <n-select v-model:value="reqForm.type" :options="reqTypeOptions" />
+        </n-form-item>
+        <n-form-item label="標籤">
+          <TagSelector v-model="reqForm.tagIds" :project-id="projectId" can-create />
         </n-form-item>
         <n-form-item>
           <n-space>
@@ -274,6 +282,9 @@
         </n-form-item>
         <n-form-item label="預估工時（小時）" path="plannedHours">
           <n-input-number v-model:value="taskForm.plannedHours" :min="0" :precision="1" placeholder="例如：8" />
+        </n-form-item>
+        <n-form-item label="標籤">
+          <TagSelector v-model="taskForm.tagIds" :project-id="projectId" can-create />
         </n-form-item>
         <n-form-item>
           <n-space>
@@ -343,6 +354,9 @@
             placeholder="選擇指派人（可選）"
             clearable
           />
+        </n-form-item>
+        <n-form-item label="標籤">
+          <TagSelector v-model="bugForm.tagIds" :project-id="projectId" can-create />
         </n-form-item>
         <n-form-item>
           <n-space>
@@ -420,6 +434,9 @@ import ProjectTimeline from '../components/ProjectTimeline.vue';
 import WebhookEventLog from '../components/WebhookEventLog.vue';
 import TaskComment from '../components/TaskComment.vue';
 import SubtaskList from '../components/SubtaskList.vue';
+import TagBadge from '../components/TagBadge.vue';
+import TagSelector from '../components/TagSelector.vue';
+import TagManager from '../components/TagManager.vue';
 
 const route = useRoute();
 const message = useMessage();
@@ -504,6 +521,7 @@ const reqForm = ref({
   description: '',
   priority: 'P2',
   type: 'FUNCTIONAL',
+  tagIds: [] as string[],
 });
 
 // 任務表單
@@ -515,6 +533,7 @@ const taskForm = ref({
   requirementId: null as string | null,
   assigneeId: null as string | null,
   plannedHours: null as number | null,
+  tagIds: [] as string[],
 });
 
 // Bug 表單
@@ -526,6 +545,7 @@ const bugForm = ref({
   requirementId: null as string | null,
   taskId: null as string | null,
   assigneeId: null as string | null,
+  tagIds: [] as string[],
 });
 
 // 選項
@@ -710,6 +730,15 @@ const reqColumns: DataTableColumns<Requirement> = [
   { title: '標題', key: 'title' },
   { title: '優先級', key: 'priority' },
   {
+    title: '標籤',
+    key: 'tags',
+    width: 160,
+    render: (row) =>
+      h('div', { style: 'display:flex;gap:4px;flex-wrap:wrap;' },
+        row.tags?.map((tag) => h(TagBadge, { tag, key: tag.id })) || '-'
+      ),
+  },
+  {
     title: '狀態',
     key: 'status',
     width: 140,
@@ -735,6 +764,15 @@ const bugColumns: DataTableColumns<Bug> = [
   { title: '標題', key: 'title' },
   { title: '嚴重程度', key: 'severity' },
   { title: '優先級', key: 'priority' },
+  {
+    title: '標籤',
+    key: 'tags',
+    width: 160,
+    render: (row) =>
+      h('div', { style: 'display:flex;gap:4px;flex-wrap:wrap;' },
+        row.tags?.map((tag) => h(TagBadge, { tag, key: tag.id })) || '-'
+      ),
+  },
   {
     title: '狀態',
     key: 'status',
@@ -1181,10 +1219,11 @@ async function handleCreateRequirement() {
   try {
     await reqFormRef.value?.validate();
     submitting.value = true;
-    await requirementApi.create(projectId, reqForm.value);
+    const data = { ...reqForm.value, tagIds: reqForm.value.tagIds?.length ? reqForm.value.tagIds : undefined };
+    await requirementApi.create(projectId, data);
     message.success('需求建立成功');
     showReqModal.value = false;
-    reqForm.value = { title: '', description: '', priority: 'P2', type: 'FUNCTIONAL' };
+    reqForm.value = { title: '', description: '', priority: 'P2', type: 'FUNCTIONAL', tagIds: [] };
     const res = await requirementApi.getAll(projectId);
     requirements.value = res.data;
   } catch (error: any) {
@@ -1206,6 +1245,7 @@ async function handleCreateTask() {
       requirementId: taskForm.value.requirementId || undefined,
       assigneeId: taskForm.value.assigneeId || undefined,
       plannedHours: taskForm.value.plannedHours || undefined,
+      tagIds: taskForm.value.tagIds?.length ? taskForm.value.tagIds : undefined,
     };
     await taskApi.create(projectId, data);
     message.success('任務建立成功');
@@ -1250,6 +1290,7 @@ async function handleCreateBug() {
       requirementId: bugForm.value.requirementId || undefined,
       taskId: bugForm.value.taskId || undefined,
       assigneeId: bugForm.value.assigneeId || undefined,
+      tagIds: bugForm.value.tagIds?.length ? bugForm.value.tagIds : undefined,
     };
     await bugApi.create(projectId, data);
     message.success('Bug 建立成功');

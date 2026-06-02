@@ -26,6 +26,7 @@ router.get('/', async (req, res) => {
         assignee: { select: { id: true, name: true } },
         requirement: { select: { id: true, reqCode: true, title: true } },
         phase: { select: { id: true, name: true } },
+        tags: { select: { id: true, name: true, color: true } },
         children: {
           include: {
             assignee: { select: { id: true, name: true } },
@@ -45,7 +46,7 @@ router.get('/', async (req, res) => {
 router.post('/', roleMiddleware(['ADMIN', 'PROJECT_MANAGER']), async (req, res) => {
   try {
     const { projectId } = req.params;
-    const { taskCode, title, description, type, priority, requirementId, assigneeId, plannedHours, dueDate, startedAt, completedAt, gitBranch, gitCommit, gitPr, parentId } = req.body;
+    const { taskCode, title, description, type, priority, requirementId, assigneeId, plannedHours, dueDate, startedAt, completedAt, gitBranch, gitCommit, gitPr, parentId, tagIds } = req.body;
     const userId = (req as any).user?.userId;
 
     // 取得專案資訊與當前活躍階段
@@ -80,30 +81,37 @@ router.post('/', roleMiddleware(['ADMIN', 'PROJECT_MANAGER']), async (req, res) 
     const count = await prisma.task.count({ where: { projectId } });
     const code = taskCode || `TASK-${String(count + 1).padStart(3, '0')}`;
 
+    const createData: any = {
+      projectId,
+      taskCode: code,
+      title,
+      description,
+      type: type || 'DEVELOPMENT',
+      priority: priority || 'P2',
+      requirementId,
+      assigneeId,
+      plannedHours,
+      dueDate: parseDate(dueDate, 'dueDate'),
+      startedAt: parseDate(startedAt, 'startedAt'),
+      completedAt: parseDate(completedAt, 'completedAt'),
+      phaseId: activePhase?.id || null,
+      parentId: parentId || null,
+      gitBranch,
+      gitCommit,
+      gitPr,
+    };
+
+    if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
+      createData.tags = { connect: tagIds.map((tid: string) => ({ id: tid })) };
+    }
+
     const task = await prisma.task.create({
-      data: {
-        projectId,
-        taskCode: code,
-        title,
-        description,
-        type: type || 'DEVELOPMENT',
-        priority: priority || 'P2',
-        requirementId,
-        assigneeId,
-        plannedHours,
-        dueDate: parseDate(dueDate, 'dueDate'),
-        startedAt: parseDate(startedAt, 'startedAt'),
-        completedAt: parseDate(completedAt, 'completedAt'),
-        phaseId: activePhase?.id || null,
-        parentId: parentId || null,
-        gitBranch,
-        gitCommit,
-        gitPr,
-      },
+      data: createData,
       include: {
         assignee: { select: { id: true, name: true } },
         requirement: { select: { id: true, reqCode: true, title: true } },
         phase: { select: { id: true, name: true } },
+        tags: { select: { id: true, name: true, color: true } },
       },
     });
 
@@ -125,12 +133,12 @@ router.put('/:id', async (req, res) => {
     const { projectId, id } = req.params;
     const userId = (req as any).user?.userId;
     const userRole = (req as any).user?.role;
-    const { status, assigneeId, phaseId } = req.body;
+    const { status, assigneeId, phaseId, tagIds } = req.body;
 
     // 取得舊任務資訊
     const oldTask = await prisma.task.findUnique({
       where: { id },
-      include: { assignee: { select: { id: true } } },
+      include: { assignee: { select: { id: true } }, tags: { select: { id: true } } },
     });
 
     if (!oldTask) {
@@ -151,15 +159,47 @@ router.put('/:id', async (req, res) => {
       }
     }
 
+    const updateData: any = { ...req.body };
+    delete updateData.tagIds;
+
     const task = await prisma.task.update({
       where: { id },
-      data: req.body,
+      data: updateData,
       include: {
         assignee: { select: { id: true, name: true } },
         requirement: { select: { id: true, reqCode: true, title: true } },
         phase: { select: { id: true, name: true } },
+        tags: { select: { id: true, name: true, color: true } },
       },
     });
+
+    // 處理標籤關聯
+    if (tagIds !== undefined) {
+      if (Array.isArray(tagIds) && tagIds.length > 0) {
+        await prisma.task.update({
+          where: { id },
+          data: { tags: { set: tagIds.map((tid: string) => ({ id: tid })) } },
+        });
+      } else {
+        await prisma.task.update({
+          where: { id },
+          data: { tags: { set: [] } },
+        });
+      }
+      // 重新獲取以包含最新標籤
+      const updatedTask = await prisma.task.findUnique({
+        where: { id },
+        include: {
+          assignee: { select: { id: true, name: true } },
+          requirement: { select: { id: true, reqCode: true, title: true } },
+          phase: { select: { id: true, name: true } },
+          tags: { select: { id: true, name: true, color: true } },
+        },
+      });
+      if (updatedTask) {
+        Object.assign(task, { tags: updatedTask.tags });
+      }
+    }
 
     // 發送通知
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });

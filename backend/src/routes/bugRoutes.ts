@@ -18,6 +18,7 @@ router.get('/', async (req, res) => {
         createdBy: { select: { id: true, name: true } },
         requirement: { select: { id: true, reqCode: true } },
         task: { select: { id: true, taskCode: true } },
+        tags: { select: { id: true, name: true, color: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -31,28 +32,34 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { projectId } = req.params;
-    const { title, description, severity, priority, requirementId, taskId, assigneeId } = req.body;
+    const { title, description, severity, priority, requirementId, taskId, assigneeId, tagIds } = req.body;
     const userId = (req as any).user?.userId;
 
     const count = await prisma.bug.count({ where: { projectId } });
     const code = `BUG-${String(count + 1).padStart(3, '0')}`;
 
+    const createData: any = {
+      projectId,
+      bugCode: code,
+      title,
+      description,
+      severity: severity || 'MEDIUM',
+      priority: priority || 'P2',
+      requirementId,
+      taskId,
+      assigneeId,
+      createdById: userId,
+    };
+    if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
+      createData.tags = { connect: tagIds.map((tid: string) => ({ id: tid })) };
+    }
+
     const bug = await prisma.bug.create({
-      data: {
-        projectId,
-        bugCode: code,
-        title,
-        description,
-        severity: severity || 'MEDIUM',
-        priority: priority || 'P2',
-        requirementId,
-        taskId,
-        assigneeId,
-        createdById: userId,
-      },
+      data: createData,
       include: {
         assignee: { select: { id: true, name: true } },
         createdBy: { select: { id: true, name: true } },
+        tags: { select: { id: true, name: true, color: true } },
       },
     });
 
@@ -74,12 +81,12 @@ router.put('/:id', async (req, res) => {
     const { projectId, id } = req.params;
     const userId = (req as any).user?.userId;
     const userRole = (req as any).user?.role;
-    const { status, assigneeId } = req.body;
+    const { status, assigneeId, tagIds } = req.body;
 
     // 取得舊 Bug 資訊
     const oldBug = await prisma.bug.findUnique({
       where: { id },
-      include: { assignee: { select: { id: true } }, createdBy: { select: { id: true } } },
+      include: { assignee: { select: { id: true } }, createdBy: { select: { id: true } }, tags: { select: { id: true } } },
     });
 
     if (!oldBug) {
@@ -99,14 +106,35 @@ router.put('/:id', async (req, res) => {
       }
     }
 
+    const updateData: any = { ...req.body };
+    delete updateData.tagIds;
+
     const bug = await prisma.bug.update({
       where: { id },
-      data: req.body,
+      data: updateData,
       include: {
         assignee: { select: { id: true, name: true } },
         createdBy: { select: { id: true, name: true } },
+        tags: { select: { id: true, name: true, color: true } },
       },
     });
+
+    if (tagIds !== undefined) {
+      if (Array.isArray(tagIds) && tagIds.length > 0) {
+        await prisma.bug.update({ where: { id }, data: { tags: { set: tagIds.map((tid: string) => ({ id: tid })) } } });
+      } else {
+        await prisma.bug.update({ where: { id }, data: { tags: { set: [] } } });
+      }
+      const updatedBug = await prisma.bug.findUnique({
+        where: { id },
+        include: {
+          assignee: { select: { id: true, name: true } },
+          createdBy: { select: { id: true, name: true } },
+          tags: { select: { id: true, name: true, color: true } },
+        },
+      });
+      if (updatedBug) Object.assign(bug, { tags: updatedBug.tags });
+    }
 
     // 發送通知
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });

@@ -14,6 +14,7 @@ router.get('/', async (req, res) => {
     const requirements = await prisma.requirement.findMany({
       where: { projectId },
       include: {
+        tags: { select: { id: true, name: true, color: true } },
         _count: { select: { tasks: true, bugs: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -28,22 +29,27 @@ router.get('/', async (req, res) => {
 router.post('/', roleMiddleware(['ADMIN', 'PROJECT_MANAGER']), async (req, res) => {
   try {
     const { projectId } = req.params;
-    const { reqCode, title, description, priority, type } = req.body;
+    const { reqCode, title, description, priority, type, tagIds } = req.body;
     const userId = (req as any).user?.userId;
 
     const count = await prisma.requirement.count({ where: { projectId } });
     const code = reqCode || `REQ-${String(count + 1).padStart(3, '0')}`;
 
+    const createData: any = {
+      projectId,
+      reqCode: code,
+      title,
+      description,
+      priority: priority || 'P2',
+      type: type || 'FUNCTIONAL',
+      createdById: userId,
+    };
+    if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
+      createData.tags = { connect: tagIds.map((tid: string) => ({ id: tid })) };
+    }
+
     const requirement = await prisma.requirement.create({
-      data: {
-        projectId,
-        reqCode: code,
-        title,
-        description,
-        priority: priority || 'P2',
-        type: type || 'FUNCTIONAL',
-        createdById: userId,
-      },
+      data: createData,
     });
     res.status(201).json(requirement);
   } catch (error: any) {
@@ -56,18 +62,34 @@ router.put('/:id', roleMiddleware(['ADMIN', 'PROJECT_MANAGER']), async (req, res
   try {
     const { projectId, id } = req.params;
     const userId = (req as any).user?.userId;
-    const { status, title, description, priority, type } = req.body;
+    const { status, title, description, priority, type, tagIds } = req.body;
 
     // 取得舊需求資訊
-    const oldReq = await prisma.requirement.findUnique({ where: { id } });
+    const oldReq = await prisma.requirement.findUnique({ where: { id }, include: { tags: { select: { id: true } } } });
     if (!oldReq) {
       return res.status(404).json({ error: 'Requirement not found' });
     }
 
+    const updateData: any = { ...req.body };
+    delete updateData.tagIds;
+
     const requirement = await prisma.requirement.update({
       where: { id },
-      data: req.body,
+      data: updateData,
     });
+
+    if (tagIds !== undefined) {
+      if (Array.isArray(tagIds) && tagIds.length > 0) {
+        await prisma.requirement.update({ where: { id }, data: { tags: { set: tagIds.map((tid: string) => ({ id: tid })) } } });
+      } else {
+        await prisma.requirement.update({ where: { id }, data: { tags: { set: [] } } });
+      }
+      const updatedReq = await prisma.requirement.findUnique({
+        where: { id },
+        include: { tags: { select: { id: true, name: true, color: true } } },
+      });
+      if (updatedReq) Object.assign(requirement, { tags: updatedReq.tags });
+    }
 
     // 記錄變更歷史
     const changeRecords = [];

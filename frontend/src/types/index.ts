@@ -52,10 +52,19 @@ export interface Requirement {
   createdById: string;
   createdAt: string;
   updatedAt: string;
+  tags?: Tag[];
   _count?: {
     tasks: number;
     bugs: number;
   };
+}
+
+export interface Tag {
+  id: string;
+  name: string;
+  color: string;
+  projectId: string;
+  createdAt?: string;
 }
 
 export interface Task {
@@ -80,6 +89,7 @@ export interface Task {
   dueDate?: string;
   parentId?: string;
   children?: Task[];
+  tags?: Tag[];
   startedAt?: string;
   completedAt?: string;
   gitBranch?: string;
@@ -103,6 +113,7 @@ export interface Bug {
   assigneeId?: string;
   assignee?: { id: string; name: string };
   createdBy?: { id: string; name: string };
+  tags?: Tag[];
   createdAt: string;
 }
 

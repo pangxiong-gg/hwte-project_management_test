@@ -47,6 +47,10 @@
             </div>
           </div>
           <div class="kanban-card-title">{{ task.title }}</div>
+          <div v-if="task.tags?.length" class="kanban-card-tags">
+            <TagBadge v-for="tag in task.tags.slice(0, 3)" :key="tag.id" :tag="tag" />
+            <span v-if="task.tags.length > 3" class="kanban-card-more-tags">+{{ task.tags.length - 3 }}</span>
+          </div>
           <div v-if="task.phase?.name" class="kanban-card-phase">
             {{ task.phase.name }}
           </div>
@@ -98,6 +102,7 @@
 import { computed, ref } from 'vue';
 import { NTag, NSelect } from 'naive-ui';
 import IconSvg from './IconSvg.vue';
+import TagBadge from './TagBadge.vue';
 import type { Task, ProjectPhase } from '../types';
 
 interface Props {
@@ -311,9 +316,22 @@ function emitAssign(taskId: string, assigneeId: string | null) {
   font-size: 13px;
   color: #1e293b;
   line-height: 1.4;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   word-break: break-word;
   font-weight: 500;
+}
+.kanban-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.kanban-card-more-tags {
+  font-size: 10px;
+  color: #94a3b8;
+  padding: 2px 6px;
+  background: #f1f5f9;
+  border-radius: 10px;
 }
 
 .kanban-card-phase {

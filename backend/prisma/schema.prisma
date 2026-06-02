@@ -48,6 +48,7 @@ model Project {
   documents     Document[]
   comments      Comment[]
   webhookEvents WebhookEvent[]
+  tags         Tag[]
 }
 
 model Requirement {
@@ -67,6 +68,7 @@ model Requirement {
   bugs              Bug[]
   testCases         TestCase[]
   requirementChanges RequirementChange[]
+  tags              Tag[] @relation("RequirementTags")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -116,6 +118,7 @@ model Task {
   children      Task[]        @relation("TaskSubtasks")
   bugs          Bug[]
   documents     Document[]
+  tags          Tag[]         @relation("TaskTags")
 
   gitBranch     String?
   gitCommit     String?
@@ -185,6 +188,7 @@ model Bug {
   createdBy     User          @relation("BugCreator", fields: [createdById], references: [id])
   assignee      User?         @relation("BugAssignee", fields: [assigneeId], references: [id])
   testExecution TestExecution?
+  tags          Tag[]         @relation("BugTags")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -281,4 +285,22 @@ model Comment {
   @@index([projectId, relatedType, relatedId, createdAt])
   @@index([parentId])
   @@index([userId])
+}
+
+model Tag {
+  id        String @id @default(uuid())
+  name      String
+  color     String @default("#3b82f6")
+  projectId String
+
+  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks        Task[]        @relation("TaskTags")
+  bugs         Bug[]         @relation("BugTags")
+  requirements Requirement[] @relation("RequirementTags")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, name])
+  @@index([projectId])
 }

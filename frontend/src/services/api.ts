@@ -167,4 +167,13 @@ export const commentApi = {
     api.delete(`/projects/${projectId}/comments/${id}`),
 };
 
+export const tagApi = {
+  getAll: (projectId: string) => api.get<{ tags: any[] }>(`/projects/${projectId}/tags`),
+  create: (projectId: string, data: { name: string; color?: string }) =>
+    api.post(`/projects/${projectId}/tags`, data),
+  update: (projectId: string, id: string, data: { name?: string; color?: string }) =>
+    api.put(`/projects/${projectId}/tags/${id}`, data),
+  delete: (projectId: string, id: string) => api.delete(`/projects/${projectId}/tags/${id}`),
+};
+
 export default api;
