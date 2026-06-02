@@ -15,24 +15,32 @@
     <!-- Summary Cards -->
     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px;">
       <n-card size="small">
-        <n-statistic label="團隊總任務" :value="summary.totalActiveTasks">
-          <template #suffix><IconSvg name="list" :size="20" color="#64748b" /></template>
-        </n-statistic>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <IconSvg name="list" :size="18" color="#64748b" />
+          <span style="font-size: 13px; color: #64748b;">團隊總任務</span>
+        </div>
+        <div style="font-size: 28px; font-weight: 600; color: #1e293b;">{{ summary.totalActiveTasks }}</div>
       </n-card>
       <n-card size="small">
-        <n-statistic label="平均負載" :value="summary.averageLoad + '%'">
-          <template #suffix><IconSvg name="layout-grid" :size="20" color="#64748b" /></template>
-        </n-statistic>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <IconSvg name="layout-grid" :size="18" color="#64748b" />
+          <span style="font-size: 13px; color: #64748b;">平均負載</span>
+        </div>
+        <div style="font-size: 28px; font-weight: 600; color: #1e293b;">{{ summary.averageLoad }}%</div>
       </n-card>
       <n-card size="small">
-        <n-statistic label="超載人數" :value="summary.overloadedCount">
-          <template #suffix><IconSvg name="alert-triangle" :size="20" color="#ef4444" /></template>
-        </n-statistic>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <IconSvg name="alert-triangle" :size="18" color="#ef4444" />
+          <span style="font-size: 13px; color: #64748b;">超載人數</span>
+        </div>
+        <div style="font-size: 28px; font-weight: 600; color: #1e293b;">{{ summary.overloadedCount }}</div>
       </n-card>
       <n-card size="small">
-        <n-statistic label="未指派任務" :value="summary.unassignedCount">
-          <template #suffix><IconSvg name="tag" :size="20" color="#f59e0b" /></template>
-        </n-statistic>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <IconSvg name="tag" :size="18" color="#f59e0b" />
+          <span style="font-size: 13px; color: #64748b;">未指派任務</span>
+        </div>
+        <div style="font-size: 28px; font-weight: 600; color: #1e293b;">{{ summary.unassignedCount }}</div>
       </n-card>
     </div>
 
@@ -151,7 +159,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useMessage } from 'naive-ui';
-import { NAlert, NButton, NCard, NDataTable, NH2, NStatistic, NText } from 'naive-ui';
+import { NAlert, NButton, NCard, NDataTable, NH2, NText } from 'naive-ui';
 import IconSvg from '../components/IconSvg.vue';
 import { resourceLoadApi } from '../services/api';
 
