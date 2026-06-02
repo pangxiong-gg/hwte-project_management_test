@@ -1,16 +1,9 @@
 <template>
   <div>
     <!-- Page Header -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-      <div>
-        <n-h2 style="margin: 0;">資源負載</n-h2>
-        <n-text style="font-size: 14px; color: #64748b;">團隊成員工作分配與負載監控</n-text>
-      </div>
-      <div class="view-tabs">
-        <button :class="{ active: viewMode === 'cards' }" @click="viewMode = 'cards'">成員卡片</button>
-        <button :class="{ active: viewMode === 'timeline' }" @click="viewMode = 'timeline'">時間軸</button>
-        <button :class="{ active: viewMode === 'chart' }" @click="viewMode = 'chart'">負載圖表</button>
-      </div>
+    <div style="margin-bottom: 24px;">
+      <n-h2 style="margin: 0;">資源負載</n-h2>
+      <n-text style="font-size: 14px; color: #64748b;">團隊成員工作分配與負載監控</n-text>
     </div>
 
     <!-- Summary Cards -->
@@ -62,6 +55,13 @@
       </span>
       <n-text v-if="warningMembers.length > 2">等 {{ warningMembers.length }} 人接近滿載</n-text>
     </n-alert>
+
+    <!-- View Toggle -->
+    <div class="view-tabs">
+      <button :class="{ active: viewMode === 'cards' }" @click="viewMode = 'cards'">成員卡片</button>
+      <button :class="{ active: viewMode === 'timeline' }" @click="viewMode = 'timeline'">時間軸</button>
+      <button :class="{ active: viewMode === 'chart' }" @click="viewMode = 'chart'">負載圖表</button>
+    </div>
 
     <!-- Member Cards View -->
     <div v-if="viewMode === 'cards'" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;">
