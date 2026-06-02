@@ -168,6 +168,8 @@ Project ─┬─→ Requirement
 | 個人資料 | /profile | 修改姓名/密碼 |
 | 用戶管理 | /users | ADMIN 專用 |
 | Sprint 看板 | 專案詳情「Sprint」Tab | Sprint 列表 + 燃盡圖 + 任務分配 |
+| 日曆 | /calendar | 全局日曆視圖 |
+| 全局搜索 | 頂部導航欄 | 任務/需求/Bug/專案搜索 |
 
 ---
 
@@ -188,6 +190,8 @@ Project ─┬─→ Requirement
 | /api/my-tasks | 我的任務（跨專案任務查詢、狀態更新、工時填報）|
 | /api/resource-load | 資源負載（團隊成員任務分配、工時、超載檢測）|
 | /api/projects/:id/sprints | Sprint（CRUD + 燃盡圖）|
+| /api/calendar/events | 日曆事件（任務截止/專案截止/Sprint）|
+| /api/search | 全局搜索（任務/需求/Bug/專案）|
 
 ---
 
@@ -208,10 +212,11 @@ Project ─┬─→ Requirement
 11. **標籤系統** ✅ — 任務/Bug/需求標籤分類
 12. **拖拽看板** ✅ — Kanban 拖拽改變狀態（視覺反饋 + dragend 清理）
 13. **Sprint/迭代管理** ✅ — Sprint 規劃 + 燃盡圖
-14. **郵件通知** — 郵件推送通知
-15. **日曆視圖** — 全局日曆，任務截止日可視化
-16. **全局搜索** — 跨項目搜索任務/需求/Bug
+14. **郵件通知** ✅ — SMTP 郵件推送 + 用戶偏好開關
+15. **日曆視圖** ✅ — 全局日曆（任務截止/專案截止/Sprint 日期）
+16. **全局搜索** ✅ — 跨項目搜索任務/需求/Bug/專案
 17. **測試報告** — 測試覆蓋率統計
+18. **ADMIN 審計日誌** — 操作追溯
 18. **ADMIN 審計日誌** — 操作追溯
 
 ---
@@ -240,6 +245,13 @@ npm run dev          # 開發模式 (PORT 5173)
 ---
 
 ## 會話記錄
+
+### 2026-06-02（第四輪）
+- 按序執行 P2 功能：郵件通知 + 日曆視圖 + 全局搜索
+- 郵件通知：nodemailer + SMTP 配置 + 通知觸發時自動發送郵件 + Profile 頁面郵件開關
+- 日曆視圖：calendarRoutes API（任務截止/專案截止/Sprint 日期）+ CalendarView 月曆組件 + 事件標記彈窗
+- 全局搜索：searchRoutes API（跨類型全文搜索）+ Dashboard 頂部搜索框 + 搜索結果彈窗
+- UI 微調：資源負載統計卡片圖標移到 label 左側
 
 ### 2026-06-02（第三輪）
 - 按序執行 P1 功能：標籤系統 + Sprint 管理 + 拖拽改進
