@@ -19,7 +19,24 @@
 
     <n-layout>
       <n-layout-header bordered class="header">
-        <div class="header-left"></div>
+        <div class="header-left">
+          <n-input
+            v-model:value="searchQuery"
+            placeholder="全局搜索任務/需求/Bug..."
+            size="small"
+            style="width: 280px;"
+            clearable
+            @keyup.enter="handleSearch"
+            @clear="showSearchModal = false"
+          >
+            <template #prefix>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </template>
+          </n-input>
+        </div>
         <div class="header-right">
           <n-popover trigger="click" placement="bottom-end" style="padding: 0; max-width: 360px;">
             <template #trigger>
@@ -72,6 +89,70 @@
         <router-view />
       </n-layout-content>
 
+      <!-- Search Modal -->
+      <n-modal
+        v-model:show="showSearchModal"
+        title="搜索結果"
+        preset="card"
+        style="width: 600px; max-height: 70vh;"
+      >
+        <n-spin v-if="searchLoading" style="padding: 40px;" />
+        <n-empty v-else-if="!searchResults.tasks?.length && !searchResults.requirements?.length && !searchResults.bugs?.length && !searchResults.projects?.length" description="暫無結果" />
+        <div v-else class="search-results">
+          <div v-if="searchResults.projects?.length > 0" class="search-section">
+            <div class="search-section-title">專案</div>
+            <div
+              v-for="item in searchResults.projects"
+              :key="item.id"
+              class="search-result-item"
+              @click="navigateToSearchResult('project', item)"
+            >
+              <span class="search-result-code">{{ item.code }}</span>
+              <span class="search-result-name">{{ item.name }}</span>
+            </div>
+          </div>
+          <div v-if="searchResults.tasks?.length > 0" class="search-section">
+            <div class="search-section-title">任務</div>
+            <div
+              v-for="item in searchResults.tasks"
+              :key="item.id"
+              class="search-result-item"
+              @click="navigateToSearchResult('task', item)"
+            >
+              <span class="search-result-code">{{ item.taskCode }}</span>
+              <span class="search-result-name">{{ item.title }}</span>
+              <span class="search-result-project">{{ item.project?.name }}</span>
+            </div>
+          </div>
+          <div v-if="searchResults.requirements?.length > 0" class="search-section">
+            <div class="search-section-title">需求</div>
+            <div
+              v-for="item in searchResults.requirements"
+              :key="item.id"
+              class="search-result-item"
+              @click="navigateToSearchResult('requirement', item)"
+            >
+              <span class="search-result-code">{{ item.reqCode }}</span>
+              <span class="search-result-name">{{ item.title }}</span>
+              <span class="search-result-project">{{ item.project?.name }}</span>
+            </div>
+          </div>
+          <div v-if="searchResults.bugs?.length > 0" class="search-section">
+            <div class="search-section-title">Bug</div>
+            <div
+              v-for="item in searchResults.bugs"
+              :key="item.id"
+              class="search-result-item"
+              @click="navigateToSearchResult('bug', item)"
+            >
+              <span class="search-result-code">{{ item.bugCode }}</span>
+              <span class="search-result-name">{{ item.title }}</span>
+              <span class="search-result-project">{{ item.project?.name }}</span>
+            </div>
+          </div>
+        </div>
+      </n-modal>
+
       <n-drawer v-model:show="showProfileDrawer" placement="right" :width="480">
         <n-drawer-content title="個人資料" closable>
           <n-card title="基本資訊" style="margin-bottom: 20px;">
@@ -117,7 +198,7 @@ import {
   NDrawer, NDrawerContent, NCard, NDescriptions, NDescriptionsItem, NForm, NFormItem, NInput, NSpace,
 } from 'naive-ui';
 import { useAuthStore } from '../stores/auth';
-import { notificationApi, userApi } from '../services/api';
+import { notificationApi, userApi, searchApi } from '../services/api';
 import IconSvg from '../components/IconSvg.vue';
 import type { Notification, User } from '../types';
 
@@ -127,6 +208,12 @@ const authStore = useAuthStore();
 const notifications = ref<Notification[]>([]);
 const unreadCount = ref(0);
 let pollInterval: ReturnType<typeof setInterval> | null = null;
+
+// Search
+const searchQuery = ref('');
+const showSearchModal = ref(false);
+const searchLoading = ref(false);
+const searchResults = ref({ tasks: [], requirements: [], bugs: [], projects: [] });
 
 // Profile drawer
 const showProfileDrawer = ref(false);
@@ -161,6 +248,34 @@ const statusLabel = computed(() => {
 
 function formatDate(date?: string) {
   return date ? new Date(date).toLocaleDateString('zh-TW') : '-';
+}
+
+async function handleSearch() {
+  if (!searchQuery.value.trim()) return;
+  searchLoading.value = true;
+  showSearchModal.value = true;
+  try {
+    const res = await searchApi.search(searchQuery.value.trim());
+    searchResults.value = res.data;
+  } catch (e) {
+    // silent
+  } finally {
+    searchLoading.value = false;
+  }
+}
+
+function navigateToSearchResult(type: string, item: any) {
+  showSearchModal.value = false;
+  searchQuery.value = '';
+  if (type === 'project') {
+    router.push(`/projects/${item.id}`);
+  } else if (type === 'task' && item.projectId) {
+    router.push(`/projects/${item.projectId}?tab=tasks`);
+  } else if (type === 'bug' && item.projectId) {
+    router.push(`/projects/${item.projectId}?tab=bugs`);
+  } else if (type === 'requirement' && item.projectId) {
+    router.push(`/projects/${item.projectId}?tab=requirements`);
+  }
 }
 
 async function loadProfileUser() {
@@ -456,5 +571,55 @@ onUnmounted(() => {
 
 .notification-panel :deep(.n-list-item.unread):hover {
   background: #1e3a5f60;
+}
+
+.search-results {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.search-section {
+  margin-bottom: 16px;
+}
+.search-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 13px;
+}
+.search-result-item:hover {
+  background: #f1f5f9;
+}
+.search-result-code {
+  font-family: monospace;
+  font-size: 11px;
+  color: #94a3b8;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.search-result-name {
+  flex: 1;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.search-result-project {
+  font-size: 11px;
+  color: #94a3b8;
+  flex-shrink: 0;
 }
 </style>

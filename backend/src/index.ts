@@ -19,6 +19,7 @@ import commentRoutes from './routes/commentRoutes.js';
 import tagRoutes from './routes/tagRoutes.js';
 import sprintRoutes from './routes/sprintRoutes.js';
 import calendarRoutes from './routes/calendarRoutes.js';
+import searchRoutes from './routes/searchRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,6 +55,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/my-tasks', myTaskRoutes);
 app.use('/api/resource-load', resourceLoadRoutes);
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/search', searchRoutes);
 app.use('/api/projects/:projectId/comments', commentRoutes);
 app.use('/api/projects/:projectId/tags', tagRoutes);
 app.use('/api/projects/:projectId/sprints', sprintRoutes);

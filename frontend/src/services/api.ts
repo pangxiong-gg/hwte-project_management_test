@@ -191,4 +191,9 @@ export const calendarApi = {
   getEvents: (month?: string) => api.get<{ events: any[] }>(`/calendar/events${month ? `?month=${month}` : ''}`),
 };
 
+export const searchApi = {
+  search: (q: string) =>
+    api.get<{ tasks: any[]; requirements: any[]; bugs: any[]; projects: any[] }>(`/search?q=${encodeURIComponent(q)}`),
+};
+
 export default api;
