@@ -102,16 +102,12 @@ function getInitial(name: string | undefined): string {
   return (name || 'U').charAt(0);
 }
 
-function countAllComments(list: any[]): number {
-  return list.reduce((sum, c) => sum + 1 + countAllComments(c.replies || []), 0);
-}
-
 async function loadComments() {
   loading.value = true;
   try {
     const res = await commentApi.getAll(props.projectId, props.relatedType, props.relatedId);
     comments.value = res.data.comments || [];
-    emit('countChange', countAllComments(comments.value));
+    emit('countChange', comments.value.length);
   } catch (err: any) {
     message.error('載入評論失敗：' + (err.response?.data?.error || err.message));
   } finally {

@@ -411,7 +411,7 @@ import { useRoute } from 'vue-router';
 import { useMessage } from 'naive-ui';
 import { NTag, NButton, NSpace, NAlert, NSelect, NTimeline, NTimelineItem, NUpload } from 'naive-ui';
 import type { DataTableColumns } from 'naive-ui';
-import { projectApi, phaseApi, requirementApi, taskApi, bugApi, userApi, requirementChangeApi, testCaseApi, cicdApi, documentApi, webhookApi } from '../services/api';
+import { projectApi, phaseApi, requirementApi, taskApi, bugApi, userApi, requirementChangeApi, testCaseApi, cicdApi, documentApi, webhookApi, commentApi } from '../services/api';
 import type { Project, ProjectPhase, Requirement, Task, Bug, User, RequirementChange, TestCase, GitHubRun, Document, WebhookEvent } from '../types';
 import { useAuthStore } from '../stores/auth';
 import { canCreateRequirement, canCreateTask, canCreateBug, canManageTestCase, isAdminOrPM } from '../utils/permissions';
@@ -922,12 +922,12 @@ async function loadData() {
   }
 }
 
-// 預加載評論數量
+// 預加載評論數量（只統計頂層討論數）
 async function loadCommentCount() {
   try {
     const res = await commentApi.getAll(projectId, 'PROJECT', projectId);
     const comments = res.data.comments || [];
-    commentCount.value = comments.reduce((sum: number, c: any) => sum + 1 + (c.replies?.length || 0), 0);
+    commentCount.value = comments.length;
   } catch (error) {
     // silent
   }
