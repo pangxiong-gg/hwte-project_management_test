@@ -42,7 +42,7 @@
                 @click.stop="emit('edit-git', task.id)"
                 title="編輯 Git 資訊"
               >
-                &#9998;
+                <IconSvg name="edit" :size="12" color="#94a3b8" />
               </span>
             </div>
           </div>
@@ -51,7 +51,7 @@
             {{ task.phase.name }}
           </div>
           <div v-if="task.gitBranch || task.gitCommit || task.gitPr" class="kanban-card-git">
-            <span v-if="task.gitBranch" class="git-branch">&#128206; {{ task.gitBranch }}</span>
+            <span v-if="task.gitBranch" class="git-branch"><IconSvg name="link" :size="12" color="#64748b" /> {{ task.gitBranch }}</span>
             <span v-if="task.gitCommit" class="git-commit" :title="task.gitCommit">{{ task.gitCommit.slice(0, 7) }}</span>
             <span v-if="task.gitPr" class="git-pr">PR#{{ task.gitPr }}</span>
           </div>
@@ -97,6 +97,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { NTag, NSelect } from 'naive-ui';
+import IconSvg from './IconSvg.vue';
 import type { Task, ProjectPhase } from '../types';
 
 interface Props {

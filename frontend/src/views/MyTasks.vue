@@ -24,22 +24,22 @@
     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px;">
       <n-card size="small">
         <n-statistic label="待辦" :value="stats.todo">
-          <template #suffix><span style="font-size: 20px;">&#128347;</span></template>
+          <template #suffix><IconSvg name="clock" :size="20" color="#f59e0b" /></template>
         </n-statistic>
       </n-card>
       <n-card size="small">
         <n-statistic label="進行中" :value="stats.inProgress">
-          <template #suffix><span style="font-size: 20px;">&#9881;&#65039;</span></template>
+          <template #suffix><IconSvg name="loader" :size="20" color="#3b82f6" /></template>
         </n-statistic>
       </n-card>
       <n-card size="small">
         <n-statistic label="已完成" :value="stats.done">
-          <template #suffix><span style="font-size: 20px;">&#9989;</span></template>
+          <template #suffix><IconSvg name="check-circle" :size="20" color="#10b981" /></template>
         </n-statistic>
       </n-card>
       <n-card size="small">
         <n-statistic label="已逾期" :value="stats.overdue">
-          <template #suffix><span style="font-size: 20px;">&#9888;&#65039;</span></template>
+          <template #suffix><IconSvg name="alert-triangle" :size="20" color="#ef4444" /></template>
         </n-statistic>
       </n-card>
     </div>
@@ -79,7 +79,7 @@
         clearable
       >
         <template #prefix>
-          <span>&#128269;</span>
+          <IconSvg name="search" :size="14" color="#94a3b8" />
         </template>
       </n-input>
     </div>
@@ -90,7 +90,7 @@
       <TaskSection
         v-if="filteredOverdue.length > 0"
         title="已逾期"
-        icon="🔴"
+        icon="alert-triangle"
         :tasks="filteredOverdue"
         @start="handleStart"
         @complete="handleComplete"
@@ -102,7 +102,7 @@
       <TaskSection
         v-if="filteredTodo.length > 0"
         title="待辦"
-        icon="🟡"
+        icon="clock"
         :tasks="filteredTodo"
         @start="handleStart"
         @complete="handleComplete"
@@ -114,7 +114,7 @@
       <TaskSection
         v-if="filteredInProgress.length > 0"
         title="進行中"
-        icon="🔵"
+        icon="loader"
         :tasks="filteredInProgress"
         @start="handleStart"
         @complete="handleComplete"
@@ -126,7 +126,7 @@
       <TaskSection
         v-if="filteredDone.length > 0"
         title="已完成"
-        icon="🟢"
+        icon="check-circle"
         :tasks="filteredDone"
         @start="handleStart"
         @complete="handleComplete"
@@ -145,7 +145,7 @@
     <div v-else style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
       <KanbanColumn
         title="待辦"
-        icon="🟡"
+        icon="clock"
         color="#fef3c7"
         :tasks="filteredTodo"
         :overdue-tasks="filteredOverdue"
@@ -156,7 +156,7 @@
       />
       <KanbanColumn
         title="進行中"
-        icon="🔵"
+        icon="loader"
         color="#dbeafe"
         :tasks="filteredInProgress"
         @start="handleStart"
@@ -166,7 +166,7 @@
       />
       <KanbanColumn
         title="已完成"
-        icon="🟢"
+        icon="check-circle"
         color="#d1fae5"
         :tasks="filteredDone"
         @start="handleStart"
@@ -220,6 +220,7 @@ import {
 } from 'naive-ui';
 import type { Task } from '../types';
 import { myTaskApi } from '../services/api';
+import IconSvg from '../components/IconSvg.vue';
 import TaskSection from '../components/TaskSection.vue';
 import KanbanColumn from '../components/KanbanColumn.vue';
 

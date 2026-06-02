@@ -1,7 +1,10 @@
 <template>
   <div style="background: #f8fafc; border-radius: 8px; padding: 12px; min-height: 400px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px;">
-      <span style="font-weight: 600; font-size: 14px;">{{ icon }} {{ title }}</span>
+      <span style="font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+        <IconSvg :name="icon" :size="16" />
+        {{ title }}
+      </span>
       <n-tag size="small" round>{{ totalCount }}</n-tag>
     </div>
 
@@ -18,7 +21,7 @@
       </div>
       <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">{{ task.taskCode }} {{ task.title }}</div>
       <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">
-        📁 {{ task.project?.name || '-' }}
+        <IconSvg name="folder" :size="12" color="#64748b" /> {{ task.project?.name || '-' }}
       </div>
       <div v-if="task.plannedHours" style="margin-bottom: 8px;">
         <n-progress :percentage="getHoursPct(task)" type="line" :height="4" :show-indicator="false" />
@@ -42,14 +45,14 @@
       </div>
       <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">{{ task.taskCode }} {{ task.title }}</div>
       <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">
-        📁 {{ task.project?.name || '-' }}
+        <IconSvg name="folder" :size="12" color="#64748b" /> {{ task.project?.name || '-' }}
       </div>
       <div v-if="task.plannedHours" style="margin-bottom: 8px;">
         <n-progress :percentage="getHoursPct(task)" type="line" :height="4" :show-indicator="false" />
         <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">{{ task.actualHours || 0 }}h / {{ task.plannedHours }}h</div>
       </div>
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 12px; color: #94a3b8;">📅 {{ formatDate(task.dueDate) }}</span>
+        <span style="font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 4px;"><IconSvg name="calendar" :size="12" color="#94a3b8" /> {{ formatDate(task.dueDate) }}</span>
         <div style="display: flex; gap: 6px;">
           <n-button
             v-if="task.status === 'TODO'"
@@ -79,6 +82,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { NButton, NEmpty, NProgress, NTag } from 'naive-ui';
+import IconSvg from './IconSvg.vue';
 import type { Task } from '../types';
 
 const props = defineProps<{

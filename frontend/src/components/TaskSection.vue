@@ -2,7 +2,10 @@
   <n-card style="margin-bottom: 16px;" size="small">
     <template #header>
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-weight: 500;">{{ icon }} {{ title }}</span>
+        <span style="font-weight: 500; display: flex; align-items: center; gap: 6px;">
+          <IconSvg :name="icon" :size="16" />
+          {{ title }}
+        </span>
         <n-tag size="small" round>{{ tasks.length }}</n-tag>
       </div>
     </template>
@@ -19,6 +22,7 @@
 <script setup lang="ts">
 import { h } from 'vue';
 import { NButton, NCard, NDataTable, NProgress, NTag } from 'naive-ui';
+import IconSvg from './IconSvg.vue';
 import type { Task } from '../types';
 
 defineProps<{
@@ -57,7 +61,7 @@ const columns = [
         h('div', { style: 'font-weight: 500; margin-bottom: 4px;' }, `${row.taskCode} ${row.title}`),
         h('div', { style: 'font-size: 12px; color: #64748b; display: flex; gap: 8px; align-items: center;' }, [
           h(NTag, { size: 'tiny', type: 'info', bordered: false }, { default: () => row.project?.name || '-' }),
-          row.requirement ? h('span', {}, `📋 ${row.requirement.reqCode}`) : null,
+          row.requirement ? h('span', { style: 'display: flex; align-items: center; gap: 4px;' }, [h(IconSvg, { name: 'file-text', size: 12, color: '#64748b' }), `${row.requirement.reqCode}`]) : null,
           h(NTag, { size: 'tiny', type: getPriorityType(row.priority) }, { default: () => row.priority }),
         ]),
       ]);

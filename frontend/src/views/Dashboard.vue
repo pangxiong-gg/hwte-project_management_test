@@ -24,7 +24,7 @@
           <n-popover trigger="click" placement="bottom-end" style="padding: 0; max-width: 360px;">
             <template #trigger>
               <button class="notification-btn">
-                <span style="font-size: 18px;">&#128276;</span>
+                <IconSvg name="bell" :size="18" color="#94a3b8" />
                 <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
               </button>
             </template>
@@ -118,6 +118,7 @@ import {
 } from 'naive-ui';
 import { useAuthStore } from '../stores/auth';
 import { notificationApi, userApi } from '../services/api';
+import IconSvg from '../components/IconSvg.vue';
 import type { Notification, User } from '../types';
 
 const router = useRouter();

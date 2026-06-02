@@ -2,8 +2,8 @@
   <div class="timeline-container">
     <!-- 時間範圍信息 -->
     <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-      <n-text depth="3" style="font-size: 13px;">
-        📅 {{ formatDateRange }}
+      <n-text depth="3" style="font-size: 13px; display: flex; align-items: center; gap: 4px;">
+        <IconSvg name="calendar" :size="14" color="#64748b" /> {{ formatDateRange }}
       </n-text>
       <n-text depth="3" style="font-size: 12px;">
         共 {{ validTasks.length }} 個任務
@@ -12,7 +12,9 @@
 
     <!-- 里程碑條 -->
     <div v-if="milestones.length > 0" class="milestone-bar">
-      <div class="milestone-label">🎯 里程碑</div>
+      <div class="milestone-label" style="display: flex; align-items: center; gap: 4px;">
+        <IconSvg name="star" :size="14" color="#f59e0b" /> 里程碑
+      </div>
       <div class="timeline-track">
         <div
           v-for="ms in milestones"
@@ -23,7 +25,7 @@
           <n-tooltip>
             <template #trigger>
               <div class="milestone-dot" :class="ms.type">
-                {{ ms.type === 'deadline' ? '🔴' : '🟢' }}
+                <IconSvg :name="ms.type === 'deadline' ? 'alert-triangle' : 'check-circle'" :size="14" color="white" />
               </div>
             </template>
             {{ ms.name }} — {{ formatDate(ms.date.toISOString()) }}
@@ -136,6 +138,7 @@
 import { computed } from 'vue';
 import type { Task, Project, ProjectPhase } from '../types';
 import { NTooltip, NAvatar, NText, NEmpty } from 'naive-ui';
+import IconSvg from './IconSvg.vue';
 
 const props = defineProps<{
   project: Project | null;
