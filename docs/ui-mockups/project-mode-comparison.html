@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>專案模式比較：方案 A vs 方案 B</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 40px;
+    line-height: 1.6;
+  }
+  h1 { text-align: center; margin-bottom: 40px; color: #f8fafc; }
+  .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; max-width: 1400px; margin: 0 auto; }
+  .card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .card h2 {
+    color: #38bdf8;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #334155;
+  }
+  .mode-label {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .mode-waterfall { background: #3b82f620; color: #60a5fa; border: 1px solid #3b82f640; }
+  .mode-agile { background: #22c55e20; color: #4ade80; border: 1px solid #22c55e40; }
+  .mode-hybrid { background: #a855f720; color: #c084fc; border: 1px solid #a855f740; }
+
+  /* 方案 A: 流程階段 */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 16px 0;
+    flex-wrap: wrap;
+  }
+  .stage {
+    background: #0f172a;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 13px;
+    text-align: center;
+    min-width: 80px;
+  }
+  .stage.active { border-color: #3b82f6; background: #3b82f620; }
+  .arrow { color: #64748b; font-size: 18px; }
+  .sprint-box {
+    background: #0f172a;
+    border: 2px dashed #22c55e60;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 12px 0;
+  }
+  .sprint-box h4 { color: #4ade80; margin-bottom: 8px; font-size: 14px; }
+  .cycle { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .cycle-item {
+    background: #0f172a;
+    border: 1px solid #22c55e40;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  .cycle-arrow { color: #22c55e; font-size: 14px; }
+
+  /* 方案 B: 任務類型綁定 */
+  .phase-block {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 12px 0;
+  }
+  .phase-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .phase-name { font-weight: 600; color: #f8fafc; }
+  .phase-status {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #334155;
+    color: #94a3b8;
+  }
+  .task-types { display: flex; gap: 8px; flex-wrap: wrap; }
+  .task-tag {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: #1e293b;
+    border: 1px solid #475569;
+    color: #cbd5e1;
+  }
+  .task-tag.allowed { border-color: #22c55e; color: #4ade80; background: #22c55e15; }
+  .task-tag.forbidden { border-color: #475569; color: #64748b; opacity: 0.5; text-decoration: line-through; }
+
+  .vs-divider {
+    text-align: center;
+    color: #64748b;
+    font-size: 14px;
+    margin: 24px 0;
+    font-style: italic;
+  }
+
+  .note {
+    background: #f59e0b15;
+    border: 1px solid #f59e0b40;
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #fbbf24;
+    margin-top: 16px;
+  }
+  .summary { margin-top: 20px; padding-top: 16px; border-top: 1px solid #334155; }
+  .summary li { margin: 6px 0; font-size: 13px; color: #94a3b8; }
+</style>
+</head>
+<body>
+<h1>專案模式設計比較：方案 A vs 方案 B</h1>
+
+<div class="comparison">
+  <!-- 方案 A -->
+  <div class="card">
+    <h2>方案 A：工作流程階段不同</h2>
+    <p style="color:#94a3b8; margin-bottom:20px; font-size:14px;">
+      核心差異：不同模式顯示不同的專案階段/看板欄位
+    </p>
+
+    <!-- 瀑布式 -->
+    <span class="mode-label mode-waterfall">瀑布式</span>
+    <div class="pipeline">
+      <div class="stage active">需求分析</div>
+      <span class="arrow">→</span>
+      <div class="stage">系統設計</div>
+      <span class="arrow">→</span>
+      <div class="stage">開發實作</div>
+      <span class="arrow">→</span>
+      <div class="stage">測試驗證</div>
+      <span class="arrow">→</span>
+      <div class="stage">發布上線</div>
+    </div>
+    <div class="note">
+      線性推進，一個階段完成才能進入下一個。看板顯示 5 個階段欄位。
+    </div>
+
+    <div class="vs-divider">—</div>
+
+    <!-- 敏捷式 -->
+    <span class="mode-label mode-agile">敏捷式</span>
+    <div class="sprint-box">
+      <h4>Sprint #3（2週）</h4>
+      <div class="cycle">
+        <div class="cycle-item">Sprint 規劃</div>
+        <span class="cycle-arrow">→</span>
+        <div class="cycle-item">開發中</div>
+        <span class="cycle-arrow">→</span>
+        <div class="cycle-item">待測試</div>
+        <span class="cycle-arrow">→</span>
+        <div class="cycle-item">驗收</div>
+        <span class="cycle-arrow">→</span>
+        <div class="cycle-item">發布</div>
+        <span class="cycle-arrow">↻</span>
+      </div>
+    </div>
+    <div class="note">
+      Sprint 循環，每個 Sprint 都走一小圈。看板顯示當前 Sprint 的欄位。
+    </div>
+
+    <div class="vs-divider">—</div>
+
+    <!-- 混合型 -->
+    <span class="mode-label mode-hybrid">混合型</span>
+    <div class="pipeline">
+      <div class="stage active">需求分析</div>
+      <span class="arrow">→</span>
+      <div class="stage">系統設計</div>
+      <span class="arrow">→</span>
+      <div class="stage" style="border-color:#a855f7; background:#a855f720;">迭代開發</div>
+      <span class="arrow">→</span>
+      <div class="stage">驗收測試</div>
+      <span class="arrow">→</span>
+      <div class="stage">發布上線</div>
+    </div>
+    <div style="margin:8px 0 8px 180px; color:#c084fc; font-size:12px;">
+      ↓ 進入「迭代開發」後，內部以 Sprint 循環運作
+    </div>
+    <div class="note">
+      大框架瀑布（需求→設計→開發→測試→發布），但「開發」階段內部是 Sprint 循環。
+    </div>
+
+    <div class="summary">
+      <ul>
+        <li>看板欄位依模式不同（5欄 vs Sprint欄 vs 混合）</li>
+        <li>任務類型不受限制，自由創建</li>
+        <li>進度追蹤方式不同（階段完成% vs Sprint燃盡圖）</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 方案 B -->
+  <div class="card">
+    <h2>方案 B：任務類型與階段綁定</h2>
+    <p style="color:#94a3b8; margin-bottom:20px; font-size:14px;">
+      核心差異：不同階段只能創建特定類型的任務
+    </p>
+
+    <!-- 瀑布式 -->
+    <span class="mode-label mode-waterfall">瀑布式</span>
+    <div class="phase-block">
+      <div class="phase-header">
+        <span class="phase-name">階段 1：需求分析</span>
+        <span class="phase-status">當前階段</span>
+      </div>
+      <div class="task-types">
+        <span class="task-tag allowed">需求文件</span>
+        <span class="task-tag forbidden">開發</span>
+        <span class="task-tag forbidden">測試</span>
+        <span class="task-tag allowed">文件</span>
+      </div>
+    </div>
+    <div class="phase-block">
+      <div class="phase-header">
+        <span class="phase-name">階段 2：系統設計</span>
+        <span class="phase-status">未開始</span>
+      </div>
+      <div class="task-types">
+        <span class="task-tag allowed">設計</span>
+        <span class="task-tag forbidden">開發</span>
+        <span class="task-tag forbidden">測試</span>
+        <span class="task-tag allowed">文件</span>
+      </div>
+    </div>
+    <div class="note">
+      每個階段「任務類型」被限制。需求分析階段不能創建「開發任務」。
+    </div>
+
+    <div class="vs-divider">—</div>
+
+    <!-- 敏捷式 -->
+    <span class="mode-label mode-agile">敏捷式</span>
+    <div class="phase-block">
+      <div class="phase-header">
+        <span class="phase-name">Sprint #3</span>
+        <span class="phase-status">進行中</span>
+      </div>
+      <div class="task-types">
+        <span class="task-tag allowed">開發</span>
+        <span class="task-tag allowed">設計</span>
+        <span class="task-tag allowed">測試</span>
+        <span class="task-tag allowed">文件</span>
+        <span class="task-tag allowed">Bug 修復</span>
+      </div>
+    </div>
+    <div class="note">
+      Sprint 內任務類型完全自由，不受限制。
+    </div>
+
+    <div class="vs-divider">—</div>
+
+    <!-- 混合型 -->
+    <span class="mode-label mode-hybrid">混合型</span>
+    <div class="phase-block">
+      <div class="phase-header">
+        <span class="phase-name">大階段：需求分析</span>
+        <span class="phase-status">僅限文件/需求</span>
+      </div>
+      <div class="task-types">
+        <span class="task-tag allowed">需求文件</span>
+        <span class="task-tag allowed">文件</span>
+        <span class="task-tag forbidden">開發</span>
+      </div>
+    </div>
+    <div class="phase-block" style="border-color:#a855f7;">
+      <div class="phase-header">
+        <span class="phase-name">迭代期：Sprint #2</span>
+        <span class="phase-status" style="background:#a855f720; color:#c084fc;">自由類型</span>
+      </div>
+      <div class="task-types">
+        <span class="task-tag allowed">開發</span>
+        <span class="task-tag allowed">設計</span>
+        <span class="task-tag allowed">測試</span>
+        <span class="task-tag allowed">文件</span>
+        <span class="task-tag allowed">Bug 修復</span>
+      </div>
+    </div>
+    <div class="note">
+      大階段限制類型，進入 Sprint 迭代期後自由。
+    </div>
+
+    <div class="summary">
+      <ul>
+        <li>看板欄位可能相同（如都顯示任務狀態）</li>
+        <li>「新增任務」時的類型選項受當前階段限制</li>
+        <li>防止「還在需求分析就開始寫程式」的錯誤</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="vs-divider" style="margin-top:40px; font-size:16px; color:#f8fafc;">
+  請告訴我哪個方案比較接近你們的需求，或需要混合調整
+</div>
+
+</body>
+</html>

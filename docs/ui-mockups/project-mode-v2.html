@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>專案管理模式設計 - 2026 UI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    /* Google I/O 2026 Inspired Palette */
+    --io-bg: #0a0e1a;
+    --io-surface: rgba(20, 25, 45, 0.7);
+    --io-border: rgba(100, 120, 200, 0.2);
+    --io-text: #e8ecf4;
+    --io-text-secondary: #8b92a8;
+    --io-accent-blue: #4285f4;
+    --io-accent-cyan: #00d4aa;
+    --io-accent-purple: #a855f7;
+    --io-accent-pink: #f472b6;
+    --io-accent-yellow: #fbbf24;
+    --io-accent-green: #34d399;
+    --io-accent-red: #f87171;
+    --io-gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f472b6 100%);
+    --io-gradient-2: linear-gradient(135deg, #00d4aa 0%, #4285f4 100%);
+    --io-gradient-3: linear-gradient(135deg, #fbbf24 0%, #f472b6 50%, #a855f7 100%);
+    --io-glass: rgba(255, 255, 255, 0.05);
+    --io-glass-border: rgba(255, 255, 255, 0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans TC', -apple-system, sans-serif;
+    background: var(--io-bg);
+    color: var(--io-text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background blobs */
+  .bg-blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.15;
+    z-index: 0;
+    animation: float 20s ease-in-out infinite;
+  }
+  .bg-blob-1 {
+    width: 600px; height: 600px;
+    background: var(--io-accent-purple);
+    top: -200px; left: -100px;
+    animation-delay: 0s;
+  }
+  .bg-blob-2 {
+    width: 500px; height: 500px;
+    background: var(--io-accent-cyan);
+    bottom: -150px; right: -100px;
+    animation-delay: -7s;
+  }
+  .bg-blob-3 {
+    width: 400px; height: 400px;
+    background: var(--io-accent-pink);
+    top: 50%; left: 50%;
+    animation-delay: -14s;
+  }
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -30px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.95); }
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .header h1 {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    background: var(--io-gradient-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header p {
+    color: var(--io-text-secondary);
+    font-size: 16px;
+  }
+
+  /* Mode Toggle - Glassmorphism Pills */
+  .mode-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+  .mode-btn {
+    padding: 14px 32px;
+    border-radius: 50px;
+    border: 1px solid var(--io-glass-border);
+    background: var(--io-glass);
+    color: var(--io-text-secondary);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+  }
+  .mode-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .mode-btn:hover {
+    border-color: rgba(255,255,255,0.25);
+    color: var(--io-text);
+    transform: translateY(-2px);
+  }
+  .mode-btn.active {
+    color: white;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .mode-btn.active-waterfall::before {
+    background: linear-gradient(135deg, #3b82f6, #06b6d4);
+    opacity: 1;
+  }
+  .mode-btn.active-agile::before {
+    background: linear-gradient(135deg, #22c55e, #10b981);
+    opacity: 1;
+  }
+  .mode-btn.active-hybrid::before {
+    background: linear-gradient(135deg, #a855f7, #ec4899);
+    opacity: 1;
+  }
+  .mode-btn span { position: relative; z-index: 1; }
+
+  /* Main content area */
+  .content-area {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+  .content-area.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Section cards - Glassmorphism */
+  .section-card {
+    background: var(--io-surface);
+    border: 1px solid var(--io-border);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 24px;
+    backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+  }
+  .section-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 20px 20px 0 0;
+  }
+  .section-card.waterfall-accent::before { background: var(--io-gradient-2); }
+  .section-card.agile-accent::before { background: linear-gradient(90deg, #22c55e, #34d399); }
+  .section-card.hybrid-accent::before { background: var(--io-gradient-1); }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-desc {
+    color: var(--io-text-secondary);
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  /* Pipeline / Flow */
+  .pipeline-flow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 16px 0;
+  }
+  .flow-stage {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 14px 20px;
+    text-align: center;
+    min-width: 100px;
+    transition: all 0.3s;
+  }
+  .flow-stage:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-2px);
+  }
+  .flow-stage.active {
+    border-color: var(--io-accent-cyan);
+    box-shadow: 0 0 20px rgba(0, 212, 170, 0.15);
+  }
+  .flow-stage .stage-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--io-text);
+    margin-bottom: 4px;
+  }
+  .flow-stage .stage-status {
+    font-size: 11px;
+    color: var(--io-text-secondary);
+  }
+  .flow-arrow {
+    color: var(--io-text-secondary);
+    font-size: 20px;
+  }
+
+  /* Sprint Cycle */
+  .sprint-container {
+    background: rgba(52, 211, 153, 0.08);
+    border: 1px dashed rgba(52, 211, 153, 0.3);
+    border-radius: 16px;
+    padding: 20px;
+    margin: 16px 0;
+  }
+  .sprint-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .sprint-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--io-accent-green);
+  }
+  .sprint-badge {
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: rgba(52, 211, 153, 0.15);
+    color: var(--io-accent-green);
+  }
+  .cycle-flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .cycle-item {
+    background: rgba(52, 211, 153, 0.1);
+    border: 1px solid rgba(52, 211, 153, 0.25);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--io-accent-green);
+  }
+  .cycle-arrow {
+    color: var(--io-accent-green);
+    font-size: 16px;
+  }
+
+  /* Task Type Restrictions */
+  .phase-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .phase-item {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 18px 20px;
+    transition: all 0.3s;
+  }
+  .phase-item:hover {
+    border-color: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+  }
+  .phase-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .phase-name {
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .phase-tag {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(168, 85, 247, 0.15);
+    color: var(--io-accent-purple);
+  }
+  .task-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .task-tag {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+  .tag-allowed {
+    background: rgba(52, 211, 153, 0.12);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    color: var(--io-accent-green);
+  }
+  .tag-forbidden {
+    background: rgba(248, 113, 113, 0.08);
+    border: 1px solid rgba(248, 113, 113, 0.2);
+    color: var(--io-accent-red);
+    opacity: 0.5;
+    text-decoration: line-through;
+  }
+  .tag-neutral {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--io-text-secondary);
+  }
+
+  /* Kanban Preview */
+  .kanban-preview {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .kanban-col {
+    min-width: 200px;
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .kanban-col-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .kanban-col-title {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .kanban-count {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.1);
+    color: var(--io-text-secondary);
+  }
+  .kanban-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .kanban-card-id {
+    font-size: 11px;
+    color: var(--io-text-secondary);
+    font-family: monospace;
+    margin-bottom: 4px;
+  }
+  .kanban-card-title {
+    color: var(--io-text);
+    margin-bottom: 8px;
+  }
+  .kanban-card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .priority-pill {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  .p-p0 { background: rgba(248, 113, 113, 0.2); color: #f87171; }
+  .p-p1 { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+  .p-p2 { background: rgba(148, 163, 184, 0.2); color: #94a3b8; }
+
+  /* Info note */
+  .info-note {
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-top: 16px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .note-waterfall {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+  }
+  .note-agile {
+    background: rgba(52, 211, 153, 0.1);
+    border: 1px solid rgba(52, 211, 153, 0.2);
+    color: #6ee7b7;
+  }
+  .note-hybrid {
+    background: rgba(168, 85, 247, 0.1);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    color: #d8b4fe;
+  }
+  .note-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /* Comparison summary */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .compare-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .compare-card h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--io-accent-cyan);
+  }
+  .compare-card ul {
+    list-style: none;
+    font-size: 13px;
+    color: var(--io-text-secondary);
+  }
+  .compare-card li {
+    padding: 6px 0;
+    padding-left: 20px;
+    position: relative;
+  }
+  .compare-card li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--io-accent-cyan);
+    font-weight: bold;
+  }
+
+  @media (max-width: 768px) {
+    .compare-grid { grid-template-columns: 1fr; }
+    .pipeline-flow { justify-content: center; }
+    .kanban-preview { flex-direction: column; }
+    .kanban-col { min-width: auto; }
+    .header h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-blob bg-blob-1"></div>
+<div class="bg-blob bg-blob-2"></div>
+<div class="bg-blob bg-blob-3"></div>
+
+<div class="container">
+  <div class="header">
+    <h1>專案管理模式設計</h1>
+    <p>結合方案 A（工作流程）+ 方案 B（任務類型限制），支援三種模式切換</p>
+  </div>
+
+  <!-- Mode Toggle -->
+  <div class="mode-toggle">
+    <button class="mode-btn active active-waterfall" onclick="switchMode('waterfall')">
+      <span>瀑布式</span>
+    </button>
+    <button class="mode-btn" onclick="switchMode('agile')">
+      <span>敏捷式</span>
+    </button>
+    <button class="mode-btn" onclick="switchMode('hybrid')">
+      <span>混合型</span>
+    </button>
+  </div>
+
+  <!-- Waterfall Content -->
+  <div id="waterfall-content" class="content-area active">
+    <div class="section-card waterfall-accent">
+      <div class="section-title">方案 A：工作流程階段</div>
+      <div class="section-desc">線性推進，一個階段完成後才能進入下一個階段</div>
+      <div class="pipeline-flow">
+        <div class="flow-stage active">
+          <div class="stage-name">需求分析</div>
+          <div class="stage-status">進行中</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-stage">
+          <div class="stage-name">系統設計</div>
+          <div class="stage-status">待開始</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-stage">
+          <div class="stage-name">開發實作</div>
+          <div class="stage-status">待開始</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-stage">
+          <div class="stage-name">測試驗證</div>
+          <div class="stage-status">待開始</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-stage">
+          <div class="stage-name">發布上線</div>
+          <div class="stage-status">待開始</div>
+        </div>
+      </div>
+      <div class="info-note note-waterfall">
+        <span class="note-icon">ℹ</span>
+        <div>看板顯示 5 個階段欄位，任務按階段分組。每個階段有明確的准入條件和產出物要求。</div>
+      </div>
+    </div>
+
+    <div class="section-card waterfall-accent">
+      <div class="section-title">方案 B：任務類型限制</div>
+      <div class="section-desc">每個階段只能創建特定類型的任務</div>
+      <div class="phase-list">
+        <div class="phase-item">
+          <div class="phase-item-header">
+            <span class="phase-name">階段 1：需求分析</span>
+            <span class="phase-tag">當前階段</span>
+          </div>
+          <div class="task-tags">
+            <span class="task-tag tag-allowed">需求文件 ✓</span>
+            <span class="task-tag tag-allowed">文件 ✓</span>
+            <span class="task-tag tag-forbidden">開發 ✗</span>
+            <span class="task-tag tag-forbidden">測試 ✗</span>
+            <span class="task-tag tag-forbidden">Bug 修復 ✗</span>
+          </div>
+        </div>
+        <div class="phase-item">
+          <div class="phase-item-header">
+            <span class="phase-name">階段 2：系統設計</span>
+            <span class="phase-tag" style="background:rgba(100,120,200,0.15);color:#8b92a8;">未開始</span>
+          </div>
+          <div class="task-tags">
+            <span class="task-tag tag-allowed">設計 ✓</span>
+            <span class="task-tag tag-allowed">文件 ✓</span>
+            <span class="task-tag tag-forbidden">開發 ✗</span>
+            <span class="task-tag tag-forbidden">測試 ✗</span>
+          </div>
+        </div>
+        <div class="phase-item">
+          <div class="phase-item-header">
+            <span class="phase-name">階段 3：開發實作</span>
+            <span class="phase-tag" style="background:rgba(100,120,200,0.15);color:#8b92a8;">未開始</span>
+          </div>
+          <div class="task-tags">
+            <span class="task-tag tag-allowed">開發 ✓</span>
+            <span class="task-tag tag-allowed">Bug 修復 ✓</span>
+            <span class="task-tag tag-forbidden">設計 ✗</span>
+          </div>
+        </div>
+      </div>
+      <div class="info-note note-waterfall">
+        <span class="note-icon">🔒</span>
+        <div>「新增任務」按鈕會根據當前階段動態限制可選的任務類型，防止階段錯亂。</div>
+      </div>
+    </div>
+
+    <div class="section-card waterfall-accent">
+      <div class="section-title">看板預覽</div>
+      <div class="section-desc">瀑布式模式下的看板佈局</div>
+      <div class="kanban-preview">
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">需求分析</span>
+            <span class="kanban-count">2</span>
+          </div>
+          <div class="kanban-card">
+            <div class="kanban-card-id">TASK-001</div>
+            <div class="kanban-card-title">撰寫使用者登入需求規格</div>
+            <div class="kanban-card-meta">
+              <span class="priority-pill p-p0">P0</span>
+              <span style="font-size:11px;color:#8b92a8;">專案經理</span>
+            </div>
+          </div>
+          <div class="kanban-card">
+            <div class="kanban-card-id">TASK-002</div>
+            <div class="kanban-card-title">需求審查會議</div>
+            <div class="kanban-card-meta">
+              <span class="priority-pill p-p1">P1</span>
+              <span style="font-size:11px;color:#8b92a8;">系統管理員</span>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">系統設計</span>
+            <span class="kanban-count">0</span>
+          </div>
+          <div style="text-align:center;padding:24px 0;color:#475569;font-size:12px;">暫無任務</div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">開發實作</span>
+            <span class="kanban-count">0</span>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">測試驗證</span>
+            <span class="kanban-count">0</span>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">發布上線</span>
+            <span class="kanban-count">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agile Content -->
+  <div id="agile-content" class="content-area">
+    <div class="section-card agile-accent">
+      <div class="section-title">方案 A：工作流程階段</div>
+      <div class="section-desc">Sprint 週期循環，每個 Sprint 都走一小圈</div>
+      <div class="sprint-container">
+        <div class="sprint-header">
+          <span class="sprint-title">Sprint #3</span>
+          <span class="sprint-badge">進行中 | 第 2 / 14 天</span>
+        </div>
+        <div class="cycle-flow">
+          <div class="cycle-item">Sprint 規劃</div>
+          <div class="cycle-arrow">→</div>
+          <div class="cycle-item" style="background:rgba(52,211,153,0.2);border-color:rgba(52,211,153,0.4);">開發中</div>
+          <div class="cycle-arrow">→</div>
+          <div class="cycle-item">待測試</div>
+          <div class="cycle-arrow">→</div>
+          <div class="cycle-item">驗收</div>
+          <div class="cycle-arrow">→</div>
+          <div class="cycle-item">發布</div>
+          <div class="cycle-arrow">↻</div>
+        </div>
+      </div>
+      <div class="info-note note-agile">
+        <span class="note-icon">🔄</span>
+        <div>每 2 週一個 Sprint，看板顯示當前 Sprint 的進行狀態。Sprint 結束後自動歸檔並開啟新 Sprint。</div>
+      </div>
+    </div>
+
+    <div class="section-card agile-accent">
+      <div class="section-title">方案 B：任務類型限制</div>
+      <div class="section-desc">Sprint 內任務類型完全自由，不受限制</div>
+      <div class="phase-item" style="border-color:rgba(52,211,153,0.3);">
+        <div class="phase-item-header">
+          <span class="phase-name">Sprint #3 - 開發中</span>
+          <span class="phase-tag" style="background:rgba(52,211,153,0.15);color:#34d399;">自由類型</span>
+        </div>
+        <div class="task-tags">
+          <span class="task-tag tag-allowed">開發 ✓</span>
+          <span class="task-tag tag-allowed">設計 ✓</span>
+          <span class="task-tag tag-allowed">測試 ✓</span>
+          <span class="task-tag tag-allowed">文件 ✓</span>
+          <span class="task-tag tag-allowed">Bug 修復 ✓</span>
+          <span class="task-tag tag-allowed">研究 ✓</span>
+        </div>
+      </div>
+      <div class="info-note note-agile">
+        <span class="note-icon">✓</span>
+        <div>敏捷模式信任團隊自組織，不限制任務類型。任務類型僅作為標記和統計用途。</div>
+      </div>
+    </div>
+
+    <div class="section-card agile-accent">
+      <div class="section-title">看板預覽</div>
+      <div class="section-desc">敏捷式模式下的 Sprint 看板佈局</div>
+      <div class="kanban-preview">
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">待辦</span>
+            <span class="kanban-count">3</span>
+          </div>
+          <div class="kanban-card">
+            <div class="kanban-card-id">TASK-003</div>
+            <div class="kanban-card-title">優化登入頁面響應速度</div>
+            <div class="kanban-card-meta">
+              <span class="priority-pill p-p1">P1</span>
+              <span style="font-size:11px;color:#8b92a8;">開發人員</span>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">進行中</span>
+            <span class="kanban-count">2</span>
+          </div>
+          <div class="kanban-card">
+            <div class="kanban-card-id">TASK-004</div>
+            <div class="kanban-card-title">設計 API 接口文件</div>
+            <div class="kanban-card-meta">
+              <span class="priority-pill p-p0">P0</span>
+              <span style="font-size:11px;color:#8b92a8;">開發人員</span>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">待測試</span>
+            <span class="kanban-count">1</span>
+          </div>
+          <div class="kanban-card">
+            <div class="kanban-card-id">TASK-005</div>
+            <div class="kanban-card-title">實作 JWT 認證中間件</div>
+            <div class="kanban-card-meta">
+              <span class="priority-pill p-p0">P0</span>
+              <span style="font-size:11px;color:#8b92a8;">開發人員</span>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">已完成</span>
+            <span class="kanban-count">4</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hybrid Content -->
+  <div id="hybrid-content" class="content-area">
+    <div class="section-card hybrid-accent">
+      <div class="section-title">方案 A：工作流程階段</div>
+      <div class="section-desc">大框架瀑布 + 開發期間 Sprint 循環</div>
+      <div class="pipeline-flow">
+        <div class="flow-stage">
+          <div class="stage-name">需求分析</div>
+          <div class="stage-status">已完成</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-stage">
+          <div class="stage-name">系統設計</div>
+          <div class="stage-status">已完成</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-stage active" style="border-color:#a855f7;box-shadow:0 0 20px rgba(168,85,247,0.15);">
+          <div class="stage-name">迭代開發</div>
+          <div class="stage-status">進行中</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-stage">
+          <div class="stage-name">驗收測試</div>
+          <div class="stage-status">待開始</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-stage">
+          <div class="stage-name">發布上線</div>
+          <div class="stage-status">待開始</div>
+        </div>
+      </div>
+      <div style="margin:8px 0 0 340px;color:#c084fc;font-size:12px;">↓ 進入「迭代開發」後，內部以 Sprint 循環運作</div>
+      <div class="sprint-container" style="margin-top:16px;border-color:rgba(168,85,247,0.3);background:rgba(168,85,247,0.05);">
+        <div class="sprint-header">
+          <span class="sprint-title" style="color:#c084fc;">迭代期：Sprint #2（開發階段內）</span>
+          <span class="sprint-badge" style="background:rgba(168,85,247,0.15);color:#c084fc;">進行中</span>
+        </div>
+        <div class="cycle-flow">
+          <div class="cycle-item" style="border-color:rgba(168,85,247,0.3);color:#c084fc;background:rgba(168,85,247,0.08);">規劃</div>
+          <div class="cycle-arrow" style="color:#c084fc;">→</div>
+          <div class="cycle-item" style="border-color:rgba(168,85,247,0.4);color:#c084fc;background:rgba(168,85,247,0.12);">開發</div>
+          <div class="cycle-arrow" style="color:#c084fc;">→</div>
+          <div class="cycle-item" style="border-color:rgba(168,85,247,0.3);color:#c084fc;background:rgba(168,85,247,0.08);">測試</div>
+          <div class="cycle-arrow" style="color:#c084fc;">→</div>
+          <div class="cycle-item" style="border-color:rgba(168,85,247,0.3);color:#c084fc;background:rgba(168,85,247,0.08);">發布</div>
+          <div class="cycle-arrow" style="color:#c084fc;">↻</div>
+        </div>
+      </div>
+      <div class="info-note note-hybrid">
+        <span class="note-icon">⚡</span>
+        <div>大框架瀑布保證方向不跑偏，開發期間 Sprint 循環保證靈活迭代。適合中大型專案。</div>
+      </div>
+    </div>
+
+    <div class="section-card hybrid-accent">
+      <div class="section-title">方案 B：任務類型限制</div>
+      <div class="section-desc">大階段限制類型，進入 Sprint 迭代期後自由</div>
+      <div class="phase-list">
+        <div class="phase-item">
+          <div class="phase-item-header">
+            <span class="phase-name">大階段：需求分析（已完成）</span>
+            <span class="phase-tag">僅限需求/文件</span>
+          </div>
+          <div class="task-tags">
+            <span class="task-tag tag-neutral">需求文件</span>
+            <span class="task-tag tag-neutral">文件</span>
+          </div>
+        </div>
+        <div class="phase-item" style="border-color:rgba(168,85,247,0.3);">
+          <div class="phase-item-header">
+            <span class="phase-name">大階段：迭代開發（進行中）</span>
+            <span class="phase-tag">內部 Sprint 自由</span>
+          </div>
+          <div class="sprint-container" style="margin:12px 0 0 0;border-color:rgba(168,85,247,0.25);background:rgba(168,85,247,0.03);">
+            <div class="sprint-header">
+              <span class="sprint-title" style="color:#c084fc;font-size:14px;">Sprint #2</span>
+              <span class="sprint-badge" style="background:rgba(168,85,247,0.12);color:#c084fc;">自由類型</span>
+            </div>
+            <div class="task-tags" style="margin-top:10px;">
+              <span class="task-tag tag-allowed">開發 ✓</span>
+              <span class="task-tag tag-allowed">設計 ✓</span>
+              <span class="task-tag tag-allowed">測試 ✓</span>
+              <span class="task-tag tag-allowed">文件 ✓</span>
+              <span class="task-tag tag-allowed">Bug 修復 ✓</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-note note-hybrid">
+        <span class="note-icon">🔓</span>
+        <div>前期嚴謹（需求/設計階段限制類型），後期靈活（開發期間 Sprint 內自由）。兼顧管控與效率。</div>
+      </div>
+    </div>
+
+    <div class="section-card hybrid-accent">
+      <div class="section-title">看板預覽</div>
+      <div class="section-desc">混合式模式下的雙層看板佈局</div>
+      <div style="margin-bottom:12px;font-size:13px;color:#c084fc;font-weight:500;">大階段：迭代開發</div>
+      <div class="kanban-preview">
+        <div class="kanban-col" style="border-color:rgba(168,85,247,0.15);">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">Sprint 待辦</span>
+            <span class="kanban-count">2</span>
+          </div>
+          <div class="kanban-card">
+            <div class="kanban-card-id">TASK-006</div>
+            <div class="kanban-card-title">重構資料庫連線池</div>
+            <div class="kanban-card-meta">
+              <span class="priority-pill p-p1">P1</span>
+              <span style="font-size:11px;color:#8b92a8;">開發</span>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-col" style="border-color:rgba(168,85,247,0.15);">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">進行中</span>
+            <span class="kanban-count">3</span>
+          </div>
+          <div class="kanban-card">
+            <div class="kanban-card-id">TASK-007</div>
+            <div class="kanban-card-title">撰寫單元測試覆蓋率報告</div>
+            <div class="kanban-card-meta">
+              <span class="priority-pill p-p0">P0</span>
+              <span style="font-size:11px;color:#8b92a8;">測試</span>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-col" style="border-color:rgba(168,85,247,0.15);">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">待測試</span>
+            <span class="kanban-count">1</span>
+          </div>
+        </div>
+        <div class="kanban-col" style="border-color:rgba(168,85,247,0.15);">
+          <div class="kanban-col-header">
+            <span class="kanban-col-title">已完成</span>
+            <span class="kanban-count">5</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Comparison -->
+  <div style="margin-top:40px;">
+    <div class="header" style="margin-bottom:24px;">
+      <h2 style="font-size:24px;background:var(--io-gradient-2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">三種模式總結比較</h2>
+    </div>
+    <div class="compare-grid">
+      <div class="compare-card">
+        <h4>瀑布式</h4>
+        <ul>
+          <li>看板：5 個階段欄位（線性）</li>
+          <li>任務類型：依階段嚴格限制</li>
+          <li>適合：需求明確、變更少</li>
+          <li>風險：階段僵化、回頭成本高</li>
+        </ul>
+      </div>
+      <div class="compare-card">
+        <h4>敏捷式</h4>
+        <ul>
+          <li>看板：Sprint 循環欄位</li>
+          <li>任務類型：完全自由</li>
+          <li>適合：需求變動頻繁</li>
+          <li>風險：缺乏大方向管控</li>
+        </ul>
+      </div>
+      <div class="compare-card">
+        <h4>混合型</h4>
+        <ul>
+          <li>看板：大階段 + Sprint 雙層</li>
+          <li>任務類型：前期限制、後期自由</li>
+          <li>適合：中大型專案</li>
+          <li>風險：複雜度較高</li>
+        </ul>
+      </div>
+      <div class="compare-card">
+        <h4>系統實作重點</h4>
+        <ul>
+          <li>建立專案時選擇模式（不可更改）</li>
+          <li>依模式動態生成看板欄位</li>
+          <li>依階段動態限制任務類型選項</li>
+          <li>不同模式顯示不同報表/儀表板</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchMode(mode) {
+    // Update buttons
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.classList.remove('active', 'active-waterfall', 'active-agile', 'active-hybrid');
+    });
+    event.target.closest('.mode-btn').classList.add('active', 'active-' + mode);
+
+    // Update content
+    document.querySelectorAll('.content-area').forEach(area => {
+      area.classList.remove('active');
+    });
+    document.getElementById(mode + '-content').classList.add('active');
+  }
+</script>
+
+</body>
+</html>
