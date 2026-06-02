@@ -44,7 +44,8 @@ model Project {
   tasks        Task[]
   testCases    TestCase[]
   bugs         Bug[]
-  documents    Document[]
+  documents     Document[]
+  webhookEvents WebhookEvent[]
 }
 
 model Requirement {
@@ -237,4 +238,21 @@ model Document {
 
   @@index([projectId])
   @@index([taskId])
+}
+
+model WebhookEvent {
+  id        String   @id @default(uuid())
+  projectId String
+  eventType String
+  action    String?
+  payload   String
+  status    String   @default("PENDING")
+  errorMsg  String?
+  taskIds   String?
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@index([status])
 }
