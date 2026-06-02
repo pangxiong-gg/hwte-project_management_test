@@ -143,6 +143,7 @@ Project ─┬─→ Requirement
 | 登入 | /login | JWT 登入 |
 | 專案列表 | / | 專案表格 + 統計概覽 + 報表圖表 |
 | 我的任務 | /my-tasks | 跨專案任務集中管理（列表+看板視圖） |
+| 資源負載 | /resource-load | PM 團隊負載監控（卡片+圖表雙視圖） |
 | 專案詳情 | /projects/:id | 需求/任務/Bug/測試/時間線/Webhook日誌 Tab |
 | 個人資料 | /profile | 修改姓名/密碼 |
 | 用戶管理 | /users | ADMIN 專用 |
@@ -164,6 +165,7 @@ Project ─┬─→ Requirement
 | /api/notifications | 通知 |
 | /api/reports | 報表（project-progress, team-efficiency, bug-trends, export）|
 | /api/my-tasks | 我的任務（跨專案任務查詢、狀態更新、工時填報）|
+| /api/resource-load | 資源負載（團隊成員任務分配、工時、超載檢測）|
 
 ---
 
@@ -177,7 +179,10 @@ Project ─┬─→ Requirement
 4. **外部工具整合** ✅ — GitHub Webhook（push/PR/workflow_run）
 5. **我的任務** ✅ — 跨專案任務集中視圖
 6. **工時填報** ✅ — actualHours 填報與可視化
-7. **資源負載視圖** — PM 視角的團隊負載監控
+7. **資源負載視圖** ✅ — PM 視角的團隊負載監控
+8. **SVG 圖標系統** ✅ — 全站 emoji 替換為科技風格 SVG
+9. **任務評論** — 任務下留言討論
+10. **子任務分解** — 任務樹狀結構
 8. **任務評論** — 任務下留言討論
 9. **子任務分解** — 任務樹狀結構
 10. **標籤系統** — 任務標籤分類

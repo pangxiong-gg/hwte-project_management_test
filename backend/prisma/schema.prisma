@@ -24,6 +24,7 @@ model User {
   notifications       Notification[]
   requirementChanges  RequirementChange[]
   documents           Document[]
+  comments            Comment[]
 }
 
 model Project {
@@ -45,6 +46,7 @@ model Project {
   testCases    TestCase[]
   bugs         Bug[]
   documents     Document[]
+  comments      Comment[]
   webhookEvents WebhookEvent[]
 }
 
@@ -255,4 +257,25 @@ model WebhookEvent {
 
   @@index([projectId, createdAt])
   @@index([status])
+}
+
+model Comment {
+  id          String   @id @default(uuid())
+  content     String
+  userId      String
+  projectId   String
+  relatedType String   // TASK / BUG / REQUIREMENT
+  relatedId   String
+  parentId    String?  // 父評論ID，用於嵌套回覆
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent   Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies  Comment[] @relation("CommentReplies")
+
+  @@index([projectId, relatedType, relatedId, createdAt])
+  @@index([parentId])
+  @@index([userId])
 }

@@ -164,6 +164,16 @@
       <n-tab-pane name="webhooks" tab="Webhook 日誌">
         <WebhookEventLog :events="webhookEvents" />
       </n-tab-pane>
+
+      <!-- 討論 Tab -->
+      <n-tab-pane name="discussions" :tab="`討論 (${commentCount})`">
+        <TaskComment
+          :project-id="projectId"
+          related-type="PROJECT"
+          :related-id="projectId"
+          @count-change="commentCount = $event"
+        />
+      </n-tab-pane>
     </n-tabs>
 
     <!-- 需求變更歷史 Modal -->
@@ -398,6 +408,7 @@ import { canCreateRequirement, canCreateTask, canCreateBug, canManageTestCase, i
 import TaskBoard from '../components/TaskBoard.vue';
 import ProjectTimeline from '../components/ProjectTimeline.vue';
 import WebhookEventLog from '../components/WebhookEventLog.vue';
+import TaskComment from '../components/TaskComment.vue';
 
 const route = useRoute();
 const message = useMessage();
@@ -413,6 +424,7 @@ const users = ref<User[]>([]);
 const testCases = ref<TestCase[]>([]);
 const documents = ref<Document[]>([]);
 const webhookEvents = ref<WebhookEvent[]>([]);
+const commentCount = ref(0);
 const requirementChanges = ref<RequirementChange[]>([]);
 const selectedRequirementId = ref<string>('');
 const activeTab = ref('requirements');

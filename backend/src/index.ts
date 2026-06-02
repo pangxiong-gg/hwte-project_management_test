@@ -15,6 +15,7 @@ import documentRoutes from './routes/documentRoutes.js';
 import webhookEventRoutes from './routes/webhookEventRoutes.js';
 import myTaskRoutes from './routes/myTaskRoutes.js';
 import resourceLoadRoutes from './routes/resourceLoadRoutes.js';
+import commentRoutes from './routes/commentRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -49,6 +50,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/my-tasks', myTaskRoutes);
 app.use('/api/resource-load', resourceLoadRoutes);
+app.use('/api/projects/:projectId/comments', commentRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

@@ -156,4 +156,15 @@ export const resourceLoadApi = {
   getAll: () => api.get<{ members: any[]; unassigned: any[]; summary: any }>('/resource-load'),
 };
 
+export const commentApi = {
+  getAll: (projectId: string, relatedType: string, relatedId: string) =>
+    api.get<{ comments: any[] }>(`/projects/${projectId}/comments?relatedType=${relatedType}&relatedId=${relatedId}`),
+  create: (projectId: string, data: { content: string; relatedType: string; relatedId: string; parentId?: string }) =>
+    api.post(`/projects/${projectId}/comments`, data),
+  update: (projectId: string, id: string, data: { content: string }) =>
+    api.put(`/projects/${projectId}/comments/${id}`, data),
+  delete: (projectId: string, id: string) =>
+    api.delete(`/projects/${projectId}/comments/${id}`),
+};
+
 export default api;

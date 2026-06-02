@@ -158,3 +158,16 @@ export async function notifyCiFailed(projectId: string, taskId: string, taskTitl
     projectId,
   });
 }
+
+export async function notifyCommentMentioned(projectId: string, commentId: string, relatedType: string, relatedId: string, notifyUserId: string, mentionerName: string) {
+  const typeMap: Record<string, string> = { TASK: '任務', BUG: 'Bug', REQUIREMENT: '需求' };
+  await createNotification({
+    userId: notifyUserId,
+    type: 'COMMENT_MENTION',
+    title: '有人在評論中提到您',
+    content: `${mentionerName} 在${typeMap[relatedType] || relatedType}的評論中提到了您`,
+    relatedType,
+    relatedId,
+    projectId,
+  });
+}
