@@ -127,7 +127,7 @@
     </div>
 
     <!-- Chart View -->
-    <div v-else class="chart-container">
+    <div v-else-if="viewMode === 'chart'" class="chart-container">
       <div class="chart-title">預估工時 vs 標準容量（40h/周）</div>
       <div class="bar-chart">
         <div v-for="m in members" :key="m.id" class="bar-row">
@@ -151,7 +151,7 @@
     </div>
 
     <!-- Timeline View -->
-    <div v-else class="timeline-container">
+    <div v-else-if="viewMode === 'timeline'" class="timeline-container">
       <div class="timeline-header">
         <div class="timeline-member-col">成員</div>
         <div class="timeline-dates">
