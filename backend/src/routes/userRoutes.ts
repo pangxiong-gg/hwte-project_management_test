@@ -11,7 +11,7 @@ router.use(authMiddleware);
 router.get('/', async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      select: { id: true, name: true, email: true, role: true, status: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, status: true, emailNotifications: true, createdAt: true },
       orderBy: { name: 'asc' },
     });
     res.json(users);
@@ -43,7 +43,7 @@ router.post('/', adminMiddleware, async (req, res) => {
         role: role || 'DEVELOPER',
         status: 'ACTIVE',
       },
-      select: { id: true, name: true, email: true, role: true, status: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, status: true, emailNotifications: true, createdAt: true },
     });
     res.status(201).json(user);
   } catch (error: any) {
@@ -57,7 +57,7 @@ router.get('/me', async (req, res) => {
     const userId = (req as any).user?.userId;
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, email: true, role: true, status: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, status: true, emailNotifications: true, createdAt: true },
     });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -72,18 +72,19 @@ router.get('/me', async (req, res) => {
 router.put('/me', async (req, res) => {
   try {
     const userId = (req as any).user?.userId;
-    const { name, password } = req.body;
+    const { name, password, emailNotifications } = req.body;
 
     const data: any = {};
     if (name !== undefined) data.name = name;
     if (password) {
       data.password = await bcrypt.hash(password, 10);
     }
+    if (emailNotifications !== undefined) data.emailNotifications = emailNotifications;
 
     const user = await prisma.user.update({
       where: { id: userId },
       data,
-      select: { id: true, name: true, email: true, role: true, status: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, status: true, emailNotifications: true, createdAt: true },
     });
     res.json(user);
   } catch (error: any) {
@@ -100,7 +101,7 @@ router.put('/:id', adminMiddleware, async (req, res) => {
     const user = await prisma.user.update({
       where: { id },
       data: { name, role, status },
-      select: { id: true, name: true, email: true, role: true, status: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, status: true, emailNotifications: true, createdAt: true },
     });
     res.json(user);
   } catch (error: any) {

@@ -12,6 +12,23 @@
       </n-descriptions>
     </n-card>
 
+    <n-card title="郵件通知" style="max-width: 600px; margin-bottom: 20px;">
+      <n-form>
+        <n-form-item label="郵件通知開關">
+          <n-switch v-model:value="emailNotifications" @update:value="toggleEmailNotifications">
+            <template #checked>開啟</template>
+            <template #unchecked>關閉</template>
+          </n-switch>
+        </n-form-item>
+        <n-alert v-if="emailNotifications" type="info" :show-icon="false">
+          當有人指派任務給您、任務狀態變更、或有人在評論中提到您時，系統將發送郵件通知到 {{ user?.email }}
+        </n-alert>
+        <n-alert v-else type="warning" :show-icon="false">
+          已關閉郵件通知，您只會在系統內收到通知
+        </n-alert>
+      </n-form>
+    </n-card>
+
     <n-card title="修改資料" style="max-width: 600px;">
       <n-form :model="form" :rules="rules" ref="formRef">
         <n-form-item label="姓名" path="name">
@@ -46,6 +63,8 @@ const authStore = useAuthStore();
 const user = ref<User | null>(null);
 const formRef = ref();
 const submitting = ref(false);
+const emailSubmitting = ref(false);
+const emailNotifications = ref(false);
 
 const form = ref({
   name: '',
@@ -84,8 +103,26 @@ async function loadUser() {
     const res = await userApi.getMe();
     user.value = res.data;
     form.value.name = res.data.name;
+    emailNotifications.value = res.data.emailNotifications ?? true;
   } catch {
     message.error('載入用戶資料失敗');
+  }
+}
+
+async function toggleEmailNotifications(value: boolean) {
+  try {
+    emailSubmitting.value = true;
+    const res = await userApi.updateMe({ emailNotifications: value });
+    message.success(value ? '郵件通知已開啟' : '郵件通知已關閉');
+    user.value = res.data;
+    authStore.user = res.data;
+  } catch (error: any) {
+    if (error?.response?.data?.error) {
+      message.error(error.response.data.error);
+    }
+    emailNotifications.value = !value;
+  } finally {
+    emailSubmitting.value = false;
   }
 }
 

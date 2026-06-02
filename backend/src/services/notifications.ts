@@ -1,4 +1,5 @@
 import { prisma } from './prisma.js';
+import { sendEmail, buildNotificationEmailHtml } from './email.js';
 
 export async function createNotification(data: {
   userId: string;
@@ -11,6 +12,14 @@ export async function createNotification(data: {
 }) {
   try {
     await prisma.notification.create({ data });
+
+    // 發送郵件通知
+    const user = await prisma.user.findUnique({ where: { id: data.userId }, select: { email: true, name: true, emailNotifications: true } });
+    if (user && user.emailNotifications) {
+      const project = data.projectId ? await prisma.project.findUnique({ where: { id: data.projectId }, select: { name: true } }) : null;
+      const html = buildNotificationEmailHtml(data.title, data.content || '', data.type, project?.name);
+      await sendEmail({ to: user.email, subject: `[數位化專案管理系統] ${data.title}`, html });
+    }
   } catch (e) {
     // 通知失敗不應該影響主流程
     console.error('Failed to create notification:', e);
