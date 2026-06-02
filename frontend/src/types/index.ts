@@ -78,6 +78,8 @@ export interface Task {
   actualHours?: number;
   isOverdue?: boolean;
   dueDate?: string;
+  parentId?: string;
+  children?: Task[];
   startedAt?: string;
   completedAt?: string;
   gitBranch?: string;

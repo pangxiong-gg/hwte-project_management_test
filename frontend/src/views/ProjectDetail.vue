@@ -174,6 +174,16 @@
           @count-change="commentCount = $event"
         />
       </n-tab-pane>
+
+      <!-- 子任務 Tab -->
+      <n-tab-pane name="subtasks" tab="子任務">
+        <SubtaskList
+          :tasks="tasks"
+          :project-id="projectId"
+          :user-role="authStore.user?.role"
+          @refresh="loadProjectData"
+        />
+      </n-tab-pane>
     </n-tabs>
 
     <!-- 需求變更歷史 Modal -->
@@ -409,6 +419,7 @@ import TaskBoard from '../components/TaskBoard.vue';
 import ProjectTimeline from '../components/ProjectTimeline.vue';
 import WebhookEventLog from '../components/WebhookEventLog.vue';
 import TaskComment from '../components/TaskComment.vue';
+import SubtaskList from '../components/SubtaskList.vue';
 
 const route = useRoute();
 const message = useMessage();

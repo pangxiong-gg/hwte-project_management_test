@@ -21,11 +21,17 @@ router.get('/', async (req, res) => {
   try {
     const { projectId } = req.params;
     const tasks = await prisma.task.findMany({
-      where: { projectId },
+      where: { projectId, parentId: null },
       include: {
         assignee: { select: { id: true, name: true } },
         requirement: { select: { id: true, reqCode: true, title: true } },
         phase: { select: { id: true, name: true } },
+        children: {
+          include: {
+            assignee: { select: { id: true, name: true } },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -39,7 +45,7 @@ router.get('/', async (req, res) => {
 router.post('/', roleMiddleware(['ADMIN', 'PROJECT_MANAGER']), async (req, res) => {
   try {
     const { projectId } = req.params;
-    const { taskCode, title, description, type, priority, requirementId, assigneeId, plannedHours, dueDate, startedAt, completedAt, gitBranch, gitCommit, gitPr } = req.body;
+    const { taskCode, title, description, type, priority, requirementId, assigneeId, plannedHours, dueDate, startedAt, completedAt, gitBranch, gitCommit, gitPr, parentId } = req.body;
     const userId = (req as any).user?.userId;
 
     // 取得專案資訊與當前活躍階段
@@ -89,6 +95,7 @@ router.post('/', roleMiddleware(['ADMIN', 'PROJECT_MANAGER']), async (req, res) 
         startedAt: parseDate(startedAt, 'startedAt'),
         completedAt: parseDate(completedAt, 'completedAt'),
         phaseId: activePhase?.id || null,
+        parentId: parentId || null,
         gitBranch,
         gitCommit,
         gitPr,
@@ -162,6 +169,21 @@ router.put('/:id', async (req, res) => {
     if (status && status !== oldTask.status) {
       if (oldTask.assigneeId && oldTask.assigneeId !== userId) {
         await notifyTaskStatusChanged(projectId, id, oldTask.title, oldTask.status, status, oldTask.assigneeId, changerName);
+      }
+    }
+
+    // 自動完成規則：子任務全完成則父任務自動完成
+    if (status === 'DONE' && oldTask.parentId) {
+      const siblings = await prisma.task.findMany({
+        where: { parentId: oldTask.parentId },
+        select: { status: true },
+      });
+      const allDone = siblings.length > 0 && siblings.every((s) => s.status === 'DONE');
+      if (allDone) {
+        await prisma.task.update({
+          where: { id: oldTask.parentId },
+          data: { status: 'DONE', completedAt: new Date() },
+        });
       }
     }
 
