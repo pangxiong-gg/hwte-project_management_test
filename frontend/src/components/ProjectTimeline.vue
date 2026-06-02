@@ -48,7 +48,16 @@
     </div>
 
     <!-- 甘特圖主體 -->
-    <div class="gantt-body">
+    <div class="gantt-body" style="position: relative;">
+      <!-- 今天線（全局，只渲染一次） -->
+      <div
+        v-if="todayPosition >= 0 && todayPosition <= 100"
+        class="today-line"
+        :style="{ left: `calc(160px + (100% - 160px) * ${todayPosition} / 100)` }"
+      >
+        <div class="today-label">今天</div>
+      </div>
+
       <div
         v-for="task in validTasks"
         :key="task.id"
@@ -83,18 +92,9 @@
 
         <!-- 任務條軌道 -->
         <div class="gantt-track">
-          <!-- 今天線 -->
-          <div
-            v-if="todayPosition >= 0 && todayPosition <= 100"
-            class="today-line"
-            :style="{ left: todayPosition + '%' }"
-          >
-            <div class="today-label">今天</div>
-          </div>
-
           <!-- 任務條 -->
           <div
-            v-if="getTaskBar(task)"
+            v-if="taskBars[task.id]"
             class="task-bar"
             :class="{
               'task-completed': task.completedAt,
@@ -102,8 +102,8 @@
               'task-pending': !task.startedAt,
             }"
             :style="{
-              left: getTaskBar(task)!.left + '%',
-              width: getTaskBar(task)!.width + '%',
+              left: taskBars[task.id]!.left + '%',
+              width: taskBars[task.id]!.width + '%',
               backgroundColor: getTaskColor(task.type),
             }"
             @click="$emit('view-task', task)"
@@ -231,6 +231,14 @@ const timeTicks = computed(() => {
 
 const validTasks = computed(() => {
   return props.tasks.filter(t => t.startedAt || t.dueDate);
+});
+
+const taskBars = computed(() => {
+  const bars: Record<string, { left: number; width: number } | null> = {};
+  for (const task of validTasks.value) {
+    bars[task.id] = getTaskBar(task);
+  }
+  return bars;
 });
 
 const milestones = computed(() => {
@@ -414,17 +422,17 @@ function taskProgressText(task: Task): string {
 
 .today-line {
   position: absolute;
-  top: -6px;
-  bottom: -6px;
+  top: 0;
+  bottom: 0;
   width: 2px;
   background: #ef4444;
-  border-left: 1px dashed #ef4444;
   z-index: 10;
+  pointer-events: none;
 }
 
 .today-label {
   position: absolute;
-  top: -16px;
+  top: 4px;
   left: -14px;
   font-size: 9px;
   color: #ef4444;
