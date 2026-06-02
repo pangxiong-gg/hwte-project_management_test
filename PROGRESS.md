@@ -84,6 +84,23 @@
 - [x] Base64 上傳 + 本地文件系統存儲
 - [x] 權限控制（ADMIN/PM 可刪除任何文件）
 
+### 標籤系統
+- [x] 標籤數據模型（Tag + 隱式多對多關聯）
+- [x] 標籤 CRUD API
+- [x] 任務/Bug/需求標籤關聯（創建/更新）
+- [x] TagBadge 組件（帶顏色標籤展示）
+- [x] TagSelector 組件（多選下拉 + 創建新標籤）
+- [x] TagManager 組件（標籤管理頁面）
+- [x] 列表/看板/表格中顯示標籤
+
+### Sprint/迭代管理
+- [x] Sprint 數據模型
+- [x] Sprint CRUD API（創建/開始/完成/刪除）
+- [x] 燃盡圖 API（實際剩餘 vs 理想線）
+- [x] SprintList 組件（卡片列表 + 統計 + 進度條）
+- [x] SprintBoard 組件（拖拽分配任務到 Sprint）
+- [x] 燃盡圖（ECharts 折線圖）
+
 ### 日曆/時間線視圖
 - [x] 專案詳情頁「時間線」Tab
 - [x] 甘特圖（任務時間分佈 + 並行關係）
@@ -150,6 +167,7 @@ Project ─┬─→ Requirement
 | 專案詳情 | /projects/:id | 需求/任務/Bug/測試/時間線/Webhook日誌 Tab |
 | 個人資料 | /profile | 修改姓名/密碼 |
 | 用戶管理 | /users | ADMIN 專用 |
+| Sprint 看板 | 專案詳情「Sprint」Tab | Sprint 列表 + 燃盡圖 + 任務分配 |
 
 ---
 
@@ -169,6 +187,7 @@ Project ─┬─→ Requirement
 | /api/reports | 報表（project-progress, team-efficiency, bug-trends, export）|
 | /api/my-tasks | 我的任務（跨專案任務查詢、狀態更新、工時填報）|
 | /api/resource-load | 資源負載（團隊成員任務分配、工時、超載檢測）|
+| /api/projects/:id/sprints | Sprint（CRUD + 燃盡圖）|
 
 ---
 
@@ -186,9 +205,14 @@ Project ─┬─→ Requirement
 8. **SVG 圖標系統** ✅ — 全站 emoji 替換為科技風格 SVG
 9. **任務評論** ✅ — 項目級討論（@提及 + 嵌套回覆）
 10. **子任務分解** ✅ — 任務樹狀結構 + 自動完成規則
-8. **任務評論** — 任務下留言討論
-9. **子任務分解** — 任務樹狀結構
-10. **標籤系統** — 任務標籤分類
+11. **標籤系統** ✅ — 任務/Bug/需求標籤分類
+12. **拖拽看板** ✅ — Kanban 拖拽改變狀態（視覺反饋 + dragend 清理）
+13. **Sprint/迭代管理** ✅ — Sprint 規劃 + 燃盡圖
+14. **郵件通知** — 郵件推送通知
+15. **日曆視圖** — 全局日曆，任務截止日可視化
+16. **全局搜索** — 跨項目搜索任務/需求/Bug
+17. **測試報告** — 測試覆蓋率統計
+18. **ADMIN 審計日誌** — 操作追溯
 
 ---
 
@@ -216,6 +240,12 @@ npm run dev          # 開發模式 (PORT 5173)
 ---
 
 ## 會話記錄
+
+### 2026-06-02（第三輪）
+- 按序執行 P1 功能：標籤系統 + Sprint 管理 + 拖拽改進
+- 標籤系統：Tag 模型 + 多對多關聯 + CRUD API + TagBadge/TagSelector/TagManager 組件 + 整合到任務/Bug/需求
+- 改進 Kanban 拖拽：dragging class（半透明 + 縮放）、dragend 清理、drag-over 列高亮
+- Sprint 管理：Sprint 模型 + sprintId on Task + CRUD/burndown API + SprintList/SprintBoard + 燃盡圖
 
 ### 2026-06-02（第二輪）
 - 角色場景分析：ADMIN/PM/DEVELOPER/TESTER 的完整使用場景與缺口驗證
