@@ -149,6 +149,16 @@
           :pagination="{ pageSize: 10 }"
         />
       </n-tab-pane>
+
+      <!-- 時間線 Tab -->
+      <n-tab-pane name="timeline" tab="時間線">
+        <ProjectTimeline
+          :project="project"
+          :tasks="tasks"
+          :phases="phases"
+          @view-task="handleViewTaskFromTimeline"
+        />
+      </n-tab-pane>
     </n-tabs>
 
     <!-- 需求變更歷史 Modal -->
@@ -381,6 +391,7 @@ import type { Project, ProjectPhase, Requirement, Task, Bug, User, RequirementCh
 import { useAuthStore } from '../stores/auth';
 import { canCreateRequirement, canCreateTask, canCreateBug, canManageTestCase, isAdminOrPM } from '../utils/permissions';
 import TaskBoard from '../components/TaskBoard.vue';
+import ProjectTimeline from '../components/ProjectTimeline.vue';
 
 const route = useRoute();
 const message = useMessage();
@@ -1322,6 +1333,11 @@ function changeTypeColor(type: string): any {
     TYPE: 'success',
   };
   return map[type] || 'default';
+}
+
+function handleViewTaskFromTimeline(task: Task) {
+  activeTab.value = 'tasks';
+  message.info(`任務：${task.title} — 負責人：${task.assignee?.name || '未指派'}`);
 }
 
 onMounted(loadData);
