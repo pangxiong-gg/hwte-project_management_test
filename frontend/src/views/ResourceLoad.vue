@@ -6,10 +6,10 @@
         <n-h2 style="margin: 0;">資源負載</n-h2>
         <n-text style="font-size: 14px; color: #64748b;">團隊成員工作分配與負載監控</n-text>
       </div>
-      <div style="display: flex; gap: 0; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
-        <n-button :type="viewMode === 'cards' ? 'primary' : 'default'" size="small" @click="viewMode = 'cards'">卡片</n-button>
-        <n-button :type="viewMode === 'chart' ? 'primary' : 'default'" size="small" @click="viewMode = 'chart'">圖表</n-button>
-        <n-button :type="viewMode === 'timeline' ? 'primary' : 'default'" size="small" @click="viewMode = 'timeline'">時間軸</n-button>
+      <div class="view-tabs">
+        <button :class="{ active: viewMode === 'cards' }" @click="viewMode = 'cards'">成員卡片</button>
+        <button :class="{ active: viewMode === 'timeline' }" @click="viewMode = 'timeline'">時間軸</button>
+        <button :class="{ active: viewMode === 'chart' }" @click="viewMode = 'chart'">負載圖表</button>
       </div>
     </div>
 
@@ -517,6 +517,32 @@ onMounted(loadData);
 }
 .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #64748b; }
 .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+.view-tabs {
+  display: flex;
+  gap: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  width: fit-content;
+}
+.view-tabs button {
+  padding: 8px 20px;
+  border: none;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  color: #64748b;
+  transition: background 0.15s, color 0.15s;
+}
+.view-tabs button:hover {
+  background: #f8fafc;
+}
+.view-tabs button.active {
+  background: #1a1a2e;
+  color: white;
+}
 
 /* Timeline View */
 .timeline-container {
