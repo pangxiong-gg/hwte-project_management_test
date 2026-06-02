@@ -73,8 +73,10 @@ export interface Task {
   assignee?: { id: string; name: string };
   requirement?: { id: string; reqCode: string; title: string };
   phase?: { id: string; name: string };
+  project?: { id: string; name: string; code: string };
   plannedHours?: number;
   actualHours?: number;
+  isOverdue?: boolean;
   dueDate?: string;
   startedAt?: string;
   completedAt?: string;

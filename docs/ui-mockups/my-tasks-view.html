@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的任務 - UI 原型</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #f5f7fa;
+      color: #1a1a1a;
+      padding: 24px;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    /* Header */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .page-title { font-size: 24px; font-weight: 600; }
+    .page-subtitle { font-size: 14px; color: #64748b; margin-top: 4px; }
+
+    /* Stats Cards */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 8px;
+      padding: 16px 20px;
+      border: 1px solid #e2e8f0;
+    }
+    .stat-label { font-size: 13px; color: #64748b; margin-bottom: 8px; }
+    .stat-value { font-size: 28px; font-weight: 600; }
+    .stat-value.todo { color: #f59e0b; }
+    .stat-value.doing { color: #3b82f6; }
+    .stat-value.done { color: #10b981; }
+    .stat-value.overdue { color: #ef4444; }
+
+    /* Filter Bar */
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .filter-btn {
+      padding: 6px 16px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      background: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .filter-btn.active {
+      background: #1a1a2e;
+      color: white;
+      border-color: #1a1a2e;
+    }
+    .search-input {
+      flex: 1;
+      max-width: 300px;
+      padding: 6px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    /* Task List */
+    .task-section {
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      font-weight: 500;
+    }
+    .section-count {
+      background: #e2e8f0;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+
+    .task-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto auto auto;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f1f5f9;
+      transition: background 0.15s;
+    }
+    .task-item:hover { background: #f8fafc; }
+    .task-item:last-child { border-bottom: none; }
+
+    .task-checkbox {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .task-info { min-width: 0; }
+    .task-title {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .task-meta {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-size: 13px;
+      color: #64748b;
+    }
+    .task-meta span { display: flex; align-items: center; gap: 4px; }
+    .project-tag {
+      background: #e0e7ff;
+      color: #4338ca;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .status-todo { background: #fef3c7; color: #92400e; }
+    .status-doing { background: #dbeafe; color: #1e40af; }
+    .status-done { background: #d1fae5; color: #065f46; }
+
+    .priority-badge {
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .priority-p0 { background: #fee2e2; color: #991b1b; }
+    .priority-p1 { background: #ffedd5; color: #9a3412; }
+    .priority-p2 { background: #fef3c7; color: #92400e; }
+
+    .due-date {
+      font-size: 13px;
+      color: #64748b;
+      white-space: nowrap;
+    }
+    .due-date.overdue { color: #ef4444; font-weight: 500; }
+
+    .task-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .action-btn {
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .action-btn:hover { background: #f1f5f9; }
+    .action-btn.primary {
+      background: #1a1a2e;
+      color: white;
+      border-color: #1a1a2e;
+    }
+
+    /* Kanban Toggle */
+    .view-toggle {
+      display: flex;
+      gap: 0;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .view-toggle button {
+      padding: 6px 14px;
+      border: none;
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .view-toggle button.active {
+      background: #1a1a2e;
+      color: white;
+    }
+
+    /* Overdue Banner */
+    .overdue-banner {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 12px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #991b1b;
+      font-size: 14px;
+    }
+    .overdue-banner .icon { font-size: 18px; }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #94a3b8;
+    }
+    .empty-state .emoji { font-size: 48px; margin-bottom: 16px; }
+    .empty-state .title { font-size: 16px; margin-bottom: 8px; color: #64748b; }
+
+    /* Variant B - Kanban */
+    .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .kanban-column {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 400px;
+    }
+    .kanban-column-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 0 4px;
+    }
+    .kanban-column-title { font-weight: 600; font-size: 14px; }
+    .kanban-count {
+      background: #e2e8f0;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+    .kanban-card {
+      background: white;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 8px;
+      border: 1px solid #e2e8f0;
+      cursor: grab;
+    }
+    .kanban-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .kanban-card-title { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+    .kanban-card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .kanban-card-tags {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .mini-tag {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <div class="page-title">我的任務</div>
+        <div class="page-subtitle">跨專案任務集中管理</div>
+      </div>
+      <div class="view-toggle">
+        <button class="active">列表</button>
+        <button>看板</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">待辦</div>
+        <div class="stat-value todo">5</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">進行中</div>
+        <div class="stat-value doing">3</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">已完成</div>
+        <div class="stat-value done">12</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">已逾期</div>
+        <div class="stat-value overdue">1</div>
+      </div>
+    </div>
+
+    <!-- Overdue Warning -->
+    <div class="overdue-banner">
+      <span class="icon">⚠️</span>
+      <span>你有 1 個任務已逾期：<strong>TASK-005 用戶認證 API 實作</strong>（逾期 2 天）</span>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <button class="filter-btn active">全部</button>
+      <button class="filter-btn">待辦</button>
+      <button class="filter-btn">進行中</button>
+      <button class="filter-btn">已完成</button>
+      <button class="filter-btn">已逾期</button>
+      <div style="flex:1"></div>
+      <input type="text" class="search-input" placeholder="搜索任務...">
+    </div>
+
+    <!-- === LIST VIEW === -->
+    <div id="list-view">
+      <!-- Overdue Section -->
+      <div class="task-section">
+        <div class="section-header">
+          <span>🔴 已逾期</span>
+          <span class="section-count">1</span>
+        </div>
+        <div class="task-item">
+          <input type="checkbox" class="task-checkbox">
+          <div class="task-info">
+            <div class="task-title">TASK-005 用戶認證 API 實作</div>
+            <div class="task-meta">
+              <span class="project-tag">數位化專案管理系統</span>
+              <span>📋 需求: REQ-001</span>
+              <span>🏷️ 後端</span>
+            </div>
+          </div>
+          <span class="status-badge status-todo">待辦</span>
+          <span class="priority-badge priority-p0">P0</span>
+          <span class="due-date overdue">截止: 06/01 ⚠️</span>
+          <div class="task-actions">
+            <button class="action-btn primary">開始</button>
+            <button class="action-btn">詳情</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TODO Section -->
+      <div class="task-section">
+        <div class="section-header">
+          <span>🟡 待辦</span>
+          <span class="section-count">3</span>
+        </div>
+        <div class="task-item">
+          <input type="checkbox" class="task-checkbox">
+          <div class="task-info">
+            <div class="task-title">TASK-008 報表導出功能</div>
+            <div class="task-meta">
+              <span class="project-tag">數位化專案管理系統</span>
+              <span>📋 需求: REQ-003</span>
+              <span>🏷️ 前端</span>
+            </div>
+          </div>
+          <span class="status-badge status-todo">待辦</span>
+          <span class="priority-badge priority-p1">P1</span>
+          <span class="due-date">截止: 06/05</span>
+          <div class="task-actions">
+            <button class="action-btn primary">開始</button>
+            <button class="action-btn">詳情</button>
+          </div>
+        </div>
+        <div class="task-item">
+          <input type="checkbox" class="task-checkbox">
+          <div class="task-info">
+            <div class="task-title">TASK-009 Bug 趨勢圖表優化</div>
+            <div class="task-meta">
+              <span class="project-tag">數位化專案管理系統</span>
+              <span>🏷️ 前端</span>
+            </div>
+          </div>
+          <span class="status-badge status-todo">待辦</span>
+          <span class="priority-badge priority-p2">P2</span>
+          <span class="due-date">截止: 06/10</span>
+          <div class="task-actions">
+            <button class="action-btn primary">開始</button>
+            <button class="action-btn">詳情</button>
+          </div>
+        </div>
+        <div class="task-item">
+          <input type="checkbox" class="task-checkbox">
+          <div class="task-info">
+            <div class="task-title">TASK-011 測試用例補充</div>
+            <div class="task-meta">
+              <span class="project-tag">電商平台 2.0</span>
+              <span>🏷️ 測試</span>
+            </div>
+          </div>
+          <span class="status-badge status-todo">待辦</span>
+          <span class="priority-badge priority-p2">P2</span>
+          <span class="due-date">截止: 06/15</span>
+          <div class="task-actions">
+            <button class="action-btn primary">開始</button>
+            <button class="action-btn">詳情</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- In Progress Section -->
+      <div class="task-section">
+        <div class="section-header">
+          <span>🔵 進行中</span>
+          <span class="section-count">2</span>
+        </div>
+        <div class="task-item">
+          <input type="checkbox" class="task-checkbox">
+          <div class="task-info">
+            <div class="task-title">TASK-006 看板視圖優化</div>
+            <div class="task-meta">
+              <span class="project-tag">數位化專案管理系統</span>
+              <span>📋 需求: REQ-002</span>
+              <span>🏷️ 前端</span>
+              <span>⏱️ 已投入 6h / 預估 10h</span>
+            </div>
+          </div>
+          <span class="status-badge status-doing">進行中</span>
+          <span class="priority-badge priority-p0">P0</span>
+          <span class="due-date">截止: 06/03</span>
+          <div class="task-actions">
+            <button class="action-btn">完成</button>
+            <button class="action-btn">詳情</button>
+          </div>
+        </div>
+        <div class="task-item">
+          <input type="checkbox" class="task-checkbox">
+          <div class="task-info">
+            <div class="task-title">TASK-007 Webhook 簽名驗證</div>
+            <div class="task-meta">
+              <span class="project-tag">數位化專案管理系統</span>
+              <span>🏷️ 後端</span>
+              <span>⏱️ 已投入 3h / 預估 8h</span>
+            </div>
+          </div>
+          <span class="status-badge status-doing">進行中</span>
+          <span class="priority-badge priority-p1">P1</span>
+          <span class="due-date">截止: 06/04</span>
+          <div class="task-actions">
+            <button class="action-btn">完成</button>
+            <button class="action-btn">詳情</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr style="margin: 40px 0; border: none; border-top: 2px dashed #cbd5e1;">
+
+    <!-- === KANBAN VIEW (Variant) === -->
+    <div style="margin-bottom: 16px;">
+      <div class="page-title" style="font-size: 18px;">看板視圖（切換選項）</div>
+    </div>
+    <div class="kanban-board">
+      <div class="kanban-column">
+        <div class="kanban-column-header">
+          <span class="kanban-column-title">🟡 待辦</span>
+          <span class="kanban-count">5</span>
+        </div>
+        <div class="kanban-card">
+          <div class="kanban-card-tags">
+            <span class="mini-tag" style="background:#fee2e2;color:#991b1b">P0</span>
+            <span class="mini-tag" style="background:#e0e7ff;color:#4338ca">後端</span>
+          </div>
+          <div class="kanban-card-title">TASK-005 用戶認證 API</div>
+          <div class="kanban-card-meta">
+            <span>📋 REQ-001</span>
+            <span style="color:#ef4444">逾期 2 天</span>
+          </div>
+        </div>
+        <div class="kanban-card">
+          <div class="kanban-card-tags">
+            <span class="mini-tag" style="background:#ffedd5;color:#9a3412">P1</span>
+            <span class="mini-tag" style="background:#d1fae5;color:#065f46">前端</span>
+          </div>
+          <div class="kanban-card-title">TASK-008 報表導出功能</div>
+          <div class="kanban-card-meta">
+            <span>截止 06/05</span>
+          </div>
+        </div>
+        <div class="kanban-card">
+          <div class="kanban-card-tags">
+            <span class="mini-tag" style="background:#fef3c7;color:#92400e">P2</span>
+            <span class="mini-tag" style="background:#d1fae5;color:#065f46">前端</span>
+          </div>
+          <div class="kanban-card-title">TASK-009 Bug 趨勢圖表</div>
+          <div class="kanban-card-meta">
+            <span>截止 06/10</span>
+          </div>
+        </div>
+      </div>
+      <div class="kanban-column">
+        <div class="kanban-column-header">
+          <span class="kanban-column-title">🔵 進行中</span>
+          <span class="kanban-count">3</span>
+        </div>
+        <div class="kanban-card">
+          <div class="kanban-card-tags">
+            <span class="mini-tag" style="background:#fee2e2;color:#991b1b">P0</span>
+            <span class="mini-tag" style="background:#d1fae5;color:#065f46">前端</span>
+          </div>
+          <div class="kanban-card-title">TASK-006 看板視圖優化</div>
+          <div class="kanban-card-meta">
+            <span>⏱️ 6h / 10h</span>
+            <span>06/03</span>
+          </div>
+        </div>
+        <div class="kanban-card">
+          <div class="kanban-card-tags">
+            <span class="mini-tag" style="background:#ffedd5;color:#9a3412">P1</span>
+            <span class="mini-tag" style="background:#dbeafe;color:#1e40af">後端</span>
+          </div>
+          <div class="kanban-card-title">TASK-007 Webhook 簽名</div>
+          <div class="kanban-card-meta">
+            <span>⏱️ 3h / 8h</span>
+            <span>06/04</span>
+          </div>
+        </div>
+      </div>
+      <div class="kanban-column">
+        <div class="kanban-column-header">
+          <span class="kanban-column-title">🟢 已完成</span>
+          <span class="kanban-count">12</span>
+        </div>
+        <div class="kanban-card" style="opacity: 0.6;">
+          <div class="kanban-card-tags">
+            <span class="mini-tag" style="background:#d1fae5;color:#065f46">P1</span>
+          </div>
+          <div class="kanban-card-title">TASK-001 專案創建 API</div>
+          <div class="kanban-card-meta">
+            <span>✅ 06/01 完成</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

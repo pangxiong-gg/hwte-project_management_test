@@ -13,6 +13,7 @@ import reportRoutes from './routes/reportRoutes.js';
 import cicdRoutes from './routes/cicdRoutes.js';
 import documentRoutes from './routes/documentRoutes.js';
 import webhookEventRoutes from './routes/webhookEventRoutes.js';
+import myTaskRoutes from './routes/myTaskRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,6 +46,7 @@ app.use('/api/projects/:projectId/webhook-events', webhookEventRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/my-tasks', myTaskRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

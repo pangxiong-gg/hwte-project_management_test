@@ -146,4 +146,10 @@ export const webhookApi = {
     api.get<WebhookEvent[]>(`/projects/${projectId}/webhook-events`),
 };
 
+export const myTaskApi = {
+  getAll: () => api.get<{ tasks: Task[]; grouped: any; stats: { total: number; todo: number; inProgress: number; done: number; overdue: number } }>('/my-tasks'),
+  updateStatus: (id: string, status: string) => api.put(`/my-tasks/${id}/status`, { status }),
+  updateHours: (id: string, actualHours: number | null) => api.put(`/my-tasks/${id}/hours`, { actualHours }),
+};
+
 export default api;

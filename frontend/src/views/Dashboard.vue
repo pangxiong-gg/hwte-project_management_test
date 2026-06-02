@@ -258,6 +258,11 @@ const menuOptions = computed(() => {
       key: '/',
       icon: renderIcon('&#9638;'),
     },
+    {
+      label: '我的任務',
+      key: '/my-tasks',
+      icon: renderIcon('&#9989;'),
+    },
   ];
   if (authStore.user?.role === 'ADMIN') {
     items.push({

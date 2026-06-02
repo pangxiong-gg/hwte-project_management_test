@@ -90,6 +90,22 @@
 - [x] 任務類型顏色區分（開發/設計/測試/文檔）
 - [x] 純 CSS Flexbox 渲染（無新圖表庫依賴）
 
+### 我的任務（集中視圖）
+- [x] 跨專案任務聚合（/my-tasks）
+- [x] 頂部統計卡片（待辦/進行中/已完成/已逾期）
+- [x] 逾期警告條
+- [x] 狀態篩選 + 搜索
+- [x] 列表視圖（按狀態分組）
+- [x] 看板視圖（三欄 Kanban）
+- [x] 快捷操作（開始/完成任務）
+- [x] 工時進度條（actual / planned）
+
+### 工時填報
+- [x] 數據庫字段（plannedHours / actualHours）
+- [x] 前端工時填報彈窗
+- [x] 後端 API 支持更新工時
+- [x] 進度可視化（條形進度條）
+
 ### GitHub Webhook 整合
 - [x] Webhook 接收端點（`/api/webhooks/github`）
 - [x] HMAC-SHA256 簽名驗證（混合模式：開發跳過/生產驗證）
@@ -126,6 +142,7 @@ Project ─┬─→ Requirement
 |------|------|------|
 | 登入 | /login | JWT 登入 |
 | 專案列表 | / | 專案表格 + 統計概覽 + 報表圖表 |
+| 我的任務 | /my-tasks | 跨專案任務集中管理（列表+看板視圖） |
 | 專案詳情 | /projects/:id | 需求/任務/Bug/測試/時間線/Webhook日誌 Tab |
 | 個人資料 | /profile | 修改姓名/密碼 |
 | 用戶管理 | /users | ADMIN 專用 |
@@ -146,6 +163,7 @@ Project ─┬─→ Requirement
 | /api/users | 用戶 |
 | /api/notifications | 通知 |
 | /api/reports | 報表（project-progress, team-efficiency, bug-trends, export）|
+| /api/my-tasks | 我的任務（跨專案任務查詢、狀態更新、工時填報）|
 
 ---
 
@@ -157,6 +175,12 @@ Project ─┬─→ Requirement
 2. **文件管理** ✅ — 需求規格書、設計文件上傳
 3. **日曆/時間線視圖** ✅ — 里程碑、deadline 視覺化
 4. **外部工具整合** ✅ — GitHub Webhook（push/PR/workflow_run）
+5. **我的任務** ✅ — 跨專案任務集中視圖
+6. **工時填報** ✅ — actualHours 填報與可視化
+7. **資源負載視圖** — PM 視角的團隊負載監控
+8. **任務評論** — 任務下留言討論
+9. **子任務分解** — 任務樹狀結構
+10. **標籤系統** — 任務標籤分類
 
 ---
 
@@ -184,6 +208,15 @@ npm run dev          # 開發模式 (PORT 5173)
 ---
 
 ## 會話記錄
+
+### 2026-06-02（第二輪）
+- 角色場景分析：ADMIN/PM/DEVELOPER/TESTER 的完整使用場景與缺口驗證
+- 新增「我的任務」集中視圖（/my-tasks）
+- 後端：myTaskRoutes.ts（跨專案任務查詢、狀態更新、工時填報 API）
+- 前端：MyTasks.vue（列表+看板雙視圖、統計卡片、逾期警告、篩選搜索）
+- 前端：TaskSection.vue + KanbanColumn.vue 子組件
+- 新增工時填報功能（工時彈窗 + 進度條可視化）
+- 更新 Dashboard 側邊欄菜單、路由、API 服務
 
 ### 2026-06-02
 - 完成日曆/時間線視圖功能（5 個 Task）
