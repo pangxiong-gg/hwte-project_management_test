@@ -187,4 +187,8 @@ export const sprintApi = {
     api.get<{ sprint: any; totalHours: number; data: any[] }>(`/projects/${projectId}/sprints/${id}/burndown`),
 };
 
+export const calendarApi = {
+  getEvents: (month?: string) => api.get<{ events: any[] }>(`/calendar/events${month ? `?month=${month}` : ''}`),
+};
+
 export default api;

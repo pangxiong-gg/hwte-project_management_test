@@ -269,6 +269,11 @@ const menuOptions = computed(() => {
       key: '/resource-load',
       icon: renderIcon('&#128200;'),
     },
+    {
+      label: '日曆',
+      key: '/calendar',
+      icon: renderIcon('&#128197;'),
+    },
   ];
   if (authStore.user?.role === 'ADMIN') {
     items.push({
