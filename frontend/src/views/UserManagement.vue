@@ -1,11 +1,13 @@
 <template>
   <div>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-      <n-h2 style="margin: 0;">用戶管理</n-h2>
-      <n-button type="primary" @click="openCreateModal">+ 新增用戶</n-button>
+    <div class="page-header">
+      <h1 class="page-title">用戶管理</h1>
+      <button class="btn-primary" @click="openCreateModal">+ 新增用戶</button>
     </div>
 
-    <n-data-table :columns="columns" :data="users" :pagination="{ pageSize: 10 }" />
+    <div class="glass-card">
+      <n-data-table :columns="columns" :data="users" :pagination="{ pageSize: 10 }" />
+    </div>
 
     <!-- 新增用戶 Modal -->
     <n-modal v-model:show="showCreateModal" title="新增用戶" preset="card" style="width: 500px;">
@@ -177,3 +179,63 @@ async function handleDelete(id: string) {
 
 onMounted(loadUsers);
 </script>
+
+<style scoped>
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.btn-primary {
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: white;
+  box-shadow: 0 4px 16px rgba(79, 106, 245, 0.25);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 6px 24px rgba(79, 106, 245, 0.35);
+  transform: translateY(-1px);
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--glass-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), rgba(255,255,255,0.4), transparent);
+}
+</style>

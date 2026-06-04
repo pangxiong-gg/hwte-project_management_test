@@ -1,20 +1,22 @@
 <template>
   <div>
-    <n-h2 style="margin: 0 0 4px 0;">日曆</n-h2>
-    <n-text style="font-size: 14px; color: #64748b;">任務截止日、專案截止日、Sprint 時間線</n-text>
-
-    <div style="margin-top: 20px;">
-      <!-- Calendar Header -->
-      <div class="calendar-header">
-        <n-button size="small" circle @click="prevMonth">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        </n-button>
-        <h3 class="calendar-title">{{ year }} 年 {{ month }} 月</h3>
-        <n-button size="small" circle @click="nextMonth">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </n-button>
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">日曆</h1>
+        <p class="page-subtitle">任務截止日、專案截止日、Sprint 時間線</p>
       </div>
+      <div class="glass-tabs">
+        <button class="glass-tab" @click="prevMonth">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <div class="calendar-month">{{ year }} 年 {{ month }} 月</div>
+        <button class="glass-tab" @click="nextMonth">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+    </div>
 
+    <div class="glass-card">
       <!-- Weekday Headers -->
       <div class="calendar-weekdays">
         <div v-for="day in weekdays" :key="day" class="calendar-weekday">{{ day }}</div>
@@ -41,21 +43,21 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Legend -->
-      <div style="display: flex; gap: 20px; margin-top: 16px; justify-content: center;">
-        <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #64748b;">
-          <span style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6;"></span>任務截止
-        </div>
-        <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #64748b;">
-          <span style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444;"></span>專案截止
-        </div>
-        <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #64748b;">
-          <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e;"></span>Sprint 開始
-        </div>
-        <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #64748b;">
-          <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></span>Sprint 結束
-        </div>
+    <!-- Legend -->
+    <div class="calendar-legend">
+      <div class="legend-item">
+        <span class="legend-dot" style="background: var(--accent-blue);"></span>任務截止
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot" style="background: var(--danger);"></span>專案截止
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot" style="background: var(--success);"></span>Sprint 開始
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot" style="background: var(--warning);"></span>Sprint 結束
       </div>
     </div>
 
@@ -85,7 +87,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { useMessage, NH2, NText, NButton, NModal, NEmpty, NTag } from 'naive-ui';
+import { useMessage, NModal, NEmpty, NTag } from 'naive-ui';
 import { calendarApi } from '../services/api';
 
 const message = useMessage();
@@ -119,7 +121,6 @@ const calendarCells = computed(() => {
   const startPadding = firstDay.getDay();
   const totalDays = lastDay.getDate();
 
-  // Previous month padding
   const prevMonthLastDay = new Date(year.value, month.value - 1, 0).getDate();
   for (let i = startPadding - 1; i >= 0; i--) {
     const date = prevMonthLastDay - i;
@@ -127,7 +128,6 @@ const calendarCells = computed(() => {
     cells.push({ date, isCurrentMonth: false, isToday: false, events: getEventsForDate(dateStr) });
   }
 
-  // Current month
   const today = new Date();
   for (let i = 1; i <= totalDays; i++) {
     const dateStr = formatDateStr(new Date(year.value, month.value - 1, i));
@@ -135,7 +135,6 @@ const calendarCells = computed(() => {
     cells.push({ date: i, isCurrentMonth: true, isToday, events: getEventsForDate(dateStr) });
   }
 
-  // Next month padding to fill 6 rows (42 cells)
   const remaining = 42 - cells.length;
   for (let i = 1; i <= remaining; i++) {
     const dateStr = formatDateStr(new Date(year.value, month.value, i));
@@ -193,85 +192,186 @@ watch(monthStr, loadEvents, { immediate: true });
 </script>
 
 <style scoped>
-.calendar-header {
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 4px 0 0 0;
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--glass-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), rgba(255,255,255,0.4), transparent);
+}
+
+.glass-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: var(--tab-bg);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--tab-border);
+}
+
+.glass-tab {
+  width: 36px;
+  height: 36px;
+  border-radius: calc(var(--radius-md) - 4px);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  margin-bottom: 16px;
+  transition: all 0.2s;
 }
-.calendar-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1e293b;
-  min-width: 140px;
+
+.glass-tab:hover {
+  background: rgba(255,255,255,0.3);
+  color: var(--text-primary);
+}
+
+.calendar-month {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 120px;
   text-align: center;
 }
+
 .calendar-weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 1px;
-  background: #e2e8f0;
-  border-radius: 8px 8px 0 0;
-  overflow: hidden;
+  gap: 8px;
+  margin-bottom: 8px;
 }
+
 .calendar-weekday {
-  background: #f8fafc;
-  padding: 10px;
   text-align: center;
-  font-size: 13px;
-  font-weight: 500;
-  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px;
 }
+
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 1px;
-  background: #e2e8f0;
-  border-radius: 0 0 8px 8px;
-  overflow: hidden;
+  gap: 8px;
 }
+
 .calendar-cell {
-  background: white;
+  aspect-ratio: 1;
+  background: var(--glass-inner-bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
   padding: 8px;
-  min-height: 80px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  min-height: 80px;
 }
+
 .calendar-cell:hover {
-  background: #f8fafc;
+  background: var(--glass-inner-hover);
+  border-color: var(--glass-border-hover);
 }
-.calendar-cell.other-month {
-  background: #fafbfc;
-  color: #cbd5e1;
-}
+
 .calendar-cell.today {
-  background: #eff6ff;
+  background: rgba(79,106,245,0.08);
+  border-color: rgba(79,106,245,0.2);
 }
+
 .calendar-cell.today .cell-date {
-  color: #3b82f6;
-  font-weight: 600;
+  color: var(--accent-blue);
+  font-weight: 800;
 }
+
+.calendar-cell.other-month {
+  opacity: 0.4;
+}
+
 .cell-date {
   font-size: 13px;
-  color: #334155;
-  margin-bottom: 4px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
+
 .cell-events {
   display: flex;
   flex-wrap: wrap;
   gap: 3px;
   align-items: center;
+  margin-top: 4px;
 }
+
 .cell-event-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
 }
+
 .cell-event-more {
   font-size: 10px;
-  color: #94a3b8;
+  color: var(--text-muted);
+}
+
+.calendar-legend {
+  display: flex;
+  gap: 20px;
+  margin-top: 16px;
+  justify-content: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
 }
 
 .event-list {
@@ -279,14 +379,17 @@ watch(monthStr, loadEvents, { immediate: true });
   flex-direction: column;
   gap: 12px;
 }
+
 .event-item {
   display: flex;
   align-items: flex-start;
   gap: 12px;
   padding: 12px;
-  background: #f8fafc;
-  border-radius: 8px;
+  background: var(--glass-inner-bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
 }
+
 .event-dot {
   width: 10px;
   height: 10px;
@@ -294,23 +397,41 @@ watch(monthStr, loadEvents, { immediate: true });
   flex-shrink: 0;
   margin-top: 4px;
 }
+
 .event-info {
   flex: 1;
   min-width: 0;
 }
+
 .event-title {
   font-size: 14px;
-  font-weight: 500;
-  color: #1e293b;
+  font-weight: 600;
+  color: var(--text-primary);
 }
+
 .event-desc {
   font-size: 12px;
-  color: #64748b;
+  color: var(--text-secondary);
   margin-top: 2px;
 }
+
 .event-project {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--text-muted);
   margin-top: 2px;
+}
+
+@media (max-width: 768px) {
+  .calendar-cell {
+    min-height: 50px;
+    padding: 4px;
+  }
+  .cell-date {
+    font-size: 11px;
+  }
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+  }
 }
 </style>

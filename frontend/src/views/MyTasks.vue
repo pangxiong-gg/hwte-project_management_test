@@ -1,47 +1,60 @@
 <template>
   <div>
-    <!-- Page Header -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div class="page-header">
       <div>
-        <n-h2 style="margin: 0;">我的任務</n-h2>
-        <n-text style="font-size: 14px; color: #64748b;">跨專案任務集中管理</n-text>
+        <h1 class="page-title">我的任務</h1>
+        <p class="page-subtitle">跨專案任務集中管理</p>
       </div>
-      <div style="display: flex; gap: 0; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
-        <n-button
-          :type="viewMode === 'list' ? 'primary' : 'default'"
-          size="small"
+      <div class="glass-tabs">
+        <button
+          :class="['glass-tab', { active: viewMode === 'list' }]"
           @click="viewMode = 'list'"
-        >列表</n-button>
-        <n-button
-          :type="viewMode === 'kanban' ? 'primary' : 'default'"
-          size="small"
+        >列表</button>
+        <button
+          :class="['glass-tab', { active: viewMode === 'kanban' }]"
           @click="viewMode = 'kanban'"
-        >看板</n-button>
+        >看板</button>
       </div>
     </div>
 
     <!-- Stats Cards -->
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px;">
-      <n-card size="small">
-        <n-statistic label="待辦" :value="stats.todo">
-          <template #suffix><IconSvg name="clock" :size="20" color="#f59e0b" /></template>
-        </n-statistic>
-      </n-card>
-      <n-card size="small">
-        <n-statistic label="進行中" :value="stats.inProgress">
-          <template #suffix><IconSvg name="loader" :size="20" color="#3b82f6" /></template>
-        </n-statistic>
-      </n-card>
-      <n-card size="small">
-        <n-statistic label="已完成" :value="stats.done">
-          <template #suffix><IconSvg name="check-circle" :size="20" color="#10b981" /></template>
-        </n-statistic>
-      </n-card>
-      <n-card size="small">
-        <n-statistic label="已逾期" :value="stats.overdue">
-          <template #suffix><IconSvg name="alert-triangle" :size="20" color="#ef4444" /></template>
-        </n-statistic>
-      </n-card>
+    <div class="bento-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
+      <div class="glass-card stat-card">
+        <div class="stat-icon-wrap yellow">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div>
+          <div class="stat-label">待辦</div>
+          <div class="stat-value">{{ stats.todo }}</div>
+        </div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="stat-icon-wrap" style="background: linear-gradient(135deg, rgba(79,106,245,0.15), rgba(139,92,246,0.15)); color: var(--accent-blue);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div>
+          <div class="stat-label">進行中</div>
+          <div class="stat-value" style="color: var(--accent-blue);">{{ stats.inProgress }}</div>
+        </div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="stat-icon-wrap green">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div>
+          <div class="stat-label">已完成</div>
+          <div class="stat-value" style="color: var(--success);">{{ stats.done }}</div>
+        </div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="stat-icon-wrap red">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+          <div class="stat-label">已逾期</div>
+          <div class="stat-value" style="color: var(--danger);">{{ stats.overdue }}</div>
+        </div>
+      </div>
     </div>
 
     <!-- Overdue Alert -->
@@ -49,7 +62,7 @@
       v-if="overdueTasks.length > 0"
       type="error"
       :title="`你有 ${overdueTasks.length} 個任務已逾期`"
-      style="margin-bottom: 16px;"
+      style="margin-bottom: 20px;"
     >
       <span v-for="(t, i) in overdueTasks.slice(0, 3)" :key="t.id">
         <n-text strong>{{ t.taskCode }} {{ t.title }}</n-text>
@@ -60,33 +73,31 @@
     </n-alert>
 
     <!-- Filters -->
-    <div style="display: flex; gap: 12px; margin-bottom: 16px; align-items: center;">
-      <n-button
+    <div style="display: flex; gap: 8px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;">
+      <button
         v-for="f in filters"
         :key="f.key"
-        :type="activeFilter === f.key ? 'primary' : 'default'"
-        size="small"
+        :class="['filter-btn', { active: activeFilter === f.key }]"
         @click="activeFilter = f.key"
       >
         {{ f.label }} ({{ getFilterCount(f.key) }})
-      </n-button>
+      </button>
       <div style="flex: 1;"></div>
       <n-input
         v-model:value="searchQuery"
         placeholder="搜索任務..."
         size="small"
-        style="width: 240px;"
+        class="glass-search-sm"
         clearable
       >
         <template #prefix>
-          <IconSvg name="search" :size="14" color="#94a3b8" />
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </template>
       </n-input>
     </div>
 
     <!-- List View -->
     <div v-if="viewMode === 'list'">
-      <!-- Overdue Section -->
       <TaskSection
         v-if="filteredOverdue.length > 0"
         title="已逾期"
@@ -97,8 +108,6 @@
         @log-hours="openHoursModal"
         @view="goToProject"
       />
-
-      <!-- Todo Section -->
       <TaskSection
         v-if="filteredTodo.length > 0"
         title="待辦"
@@ -109,8 +118,6 @@
         @log-hours="openHoursModal"
         @view="goToProject"
       />
-
-      <!-- In Progress Section -->
       <TaskSection
         v-if="filteredInProgress.length > 0"
         title="進行中"
@@ -121,8 +128,6 @@
         @log-hours="openHoursModal"
         @view="goToProject"
       />
-
-      <!-- Done Section -->
       <TaskSection
         v-if="filteredDone.length > 0"
         title="已完成"
@@ -133,20 +138,14 @@
         @log-hours="openHoursModal"
         @view="goToProject"
       />
-
-      <n-empty
-        v-if="displayedTasks.length === 0"
-        description="暫無任務"
-        style="padding: 60px;"
-      />
+      <n-empty v-if="displayedTasks.length === 0" description="暫無任務" style="padding: 60px;" />
     </div>
 
     <!-- Kanban View -->
-    <div v-else style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+    <div v-else class="kanban-grid">
       <KanbanColumn
         title="待辦"
         icon="clock"
-        color="#fef3c7"
         :tasks="filteredTodo"
         :overdue-tasks="filteredOverdue"
         @start="handleStart"
@@ -157,7 +156,6 @@
       <KanbanColumn
         title="進行中"
         icon="loader"
-        color="#dbeafe"
         :tasks="filteredInProgress"
         @start="handleStart"
         @complete="handleComplete"
@@ -167,7 +165,6 @@
       <KanbanColumn
         title="已完成"
         icon="check-circle"
-        color="#d1fae5"
         :tasks="filteredDone"
         @start="handleStart"
         @complete="handleComplete"
@@ -177,12 +174,7 @@
     </div>
 
     <!-- Hours Modal -->
-    <n-modal
-      v-model:show="showHoursModal"
-      title="填報工時"
-      preset="card"
-      style="width: 400px;"
-    >
+    <n-modal v-model:show="showHoursModal" title="填報工時" preset="card" style="width: 400px;">
       <n-form v-if="hoursForm.task">
         <n-form-item label="任務">
           <n-text strong>{{ hoursForm.task.taskCode }} {{ hoursForm.task.title }}</n-text>
@@ -191,13 +183,7 @@
           <n-text>{{ hoursForm.task.plannedHours || '-' }} 小時</n-text>
         </n-form-item>
         <n-form-item label="已投入工時">
-          <n-input-number
-            v-model:value="hoursForm.actualHours"
-            :min="0"
-            :precision="1"
-            placeholder="請輸入實際工時"
-            style="width: 100%;"
-          >
+          <n-input-number v-model:value="hoursForm.actualHours" :min="0" :precision="1" placeholder="請輸入實際工時" style="width: 100%;">
             <template #suffix>小時</template>
           </n-input-number>
         </n-form-item>
@@ -215,19 +201,17 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useMessage } from 'naive-ui';
 import {
-  NAlert, NButton, NCard, NEmpty, NH2, NInput, NInputNumber,
-  NModal, NForm, NFormItem, NSpace, NStatistic,
+  NAlert, NButton, NEmpty, NInput, NInputNumber,
+  NModal, NForm, NFormItem, NSpace, NText,
 } from 'naive-ui';
 import type { Task } from '../types';
 import { myTaskApi } from '../services/api';
-import IconSvg from '../components/IconSvg.vue';
 import TaskSection from '../components/TaskSection.vue';
 import KanbanColumn from '../components/KanbanColumn.vue';
 
 const router = useRouter();
 const message = useMessage();
 
-// State
 const tasks = ref<Task[]>([]);
 const stats = ref({ total: 0, todo: 0, inProgress: 0, done: 0, overdue: 0 });
 const loading = ref(false);
@@ -235,13 +219,9 @@ const viewMode = ref<'list' | 'kanban'>('list');
 const activeFilter = ref('all');
 const searchQuery = ref('');
 
-// Hours modal
 const showHoursModal = ref(false);
 const hoursLoading = ref(false);
-const hoursForm = ref<{ task: Task | null; actualHours: number | null }>({
-  task: null,
-  actualHours: null,
-});
+const hoursForm = ref<{ task: Task | null; actualHours: number | null }>({ task: null, actualHours: null });
 
 const filters = [
   { key: 'all', label: '全部' },
@@ -251,44 +231,27 @@ const filters = [
   { key: 'overdue', label: '已逾期' },
 ];
 
-// Computed
 const overdueTasks = computed(() => tasks.value.filter((t) => t.isOverdue));
 
 const filteredTasks = computed(() => {
   let result = tasks.value;
+  if (activeFilter.value === 'todo') result = result.filter((t) => t.status === 'TODO');
+  else if (activeFilter.value === 'inProgress') result = result.filter((t) => t.status === 'IN_PROGRESS');
+  else if (activeFilter.value === 'done') result = result.filter((t) => t.status === 'DONE');
+  else if (activeFilter.value === 'overdue') result = result.filter((t) => t.isOverdue);
 
-  // Filter by status
-  if (activeFilter.value === 'todo') {
-    result = result.filter((t) => t.status === 'TODO');
-  } else if (activeFilter.value === 'inProgress') {
-    result = result.filter((t) => t.status === 'IN_PROGRESS');
-  } else if (activeFilter.value === 'done') {
-    result = result.filter((t) => t.status === 'DONE');
-  } else if (activeFilter.value === 'overdue') {
-    result = result.filter((t) => t.isOverdue);
-  }
-
-  // Search
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase();
     result = result.filter(
-      (t) =>
-        t.title.toLowerCase().includes(q) ||
-        t.taskCode.toLowerCase().includes(q) ||
-        t.project?.name.toLowerCase().includes(q)
+      (t) => t.title.toLowerCase().includes(q) || t.taskCode.toLowerCase().includes(q) || t.project?.name.toLowerCase().includes(q)
     );
   }
-
   return result;
 });
 
 const filteredOverdue = computed(() => filteredTasks.value.filter((t) => t.isOverdue));
-const filteredTodo = computed(() =>
-  filteredTasks.value.filter((t) => !t.isOverdue && t.status === 'TODO')
-);
-const filteredInProgress = computed(() =>
-  filteredTasks.value.filter((t) => !t.isOverdue && t.status === 'IN_PROGRESS')
-);
+const filteredTodo = computed(() => filteredTasks.value.filter((t) => !t.isOverdue && t.status === 'TODO'));
+const filteredInProgress = computed(() => filteredTasks.value.filter((t) => !t.isOverdue && t.status === 'IN_PROGRESS'));
 const filteredDone = computed(() => filteredTasks.value.filter((t) => t.status === 'DONE'));
 const displayedTasks = computed(() => filteredTasks.value);
 
@@ -304,11 +267,9 @@ function getFilterCount(key: string): number {
 function getOverdueDays(dueDate: string): number {
   const d = new Date(dueDate);
   const now = new Date();
-  const diff = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
-  return Math.max(0, diff);
+  return Math.max(0, Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24)));
 }
 
-// Actions
 async function loadTasks() {
   loading.value = true;
   try {
@@ -343,10 +304,7 @@ async function handleComplete(task: Task) {
 }
 
 function openHoursModal(task: Task) {
-  hoursForm.value = {
-    task,
-    actualHours: task.actualHours ?? null,
-  };
+  hoursForm.value = { task, actualHours: task.actualHours ?? null };
   showHoursModal.value = true;
 }
 
@@ -366,21 +324,180 @@ async function submitHours() {
 }
 
 function goToProject(task: Task) {
-  if (task.projectId) {
-    router.push(`/projects/${task.projectId}?tab=tasks`);
-  }
+  if (task.projectId) router.push(`/projects/${task.projectId}?tab=tasks`);
 }
 
 onMounted(loadTasks);
 </script>
 
 <style scoped>
-:deep(.n-statistic__label) {
-  font-size: 13px;
-  color: #64748b;
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
 }
-:deep(.n-statistic__value) {
-  font-size: 28px;
+.page-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  margin: 0;
+  color: var(--text-primary);
+}
+.page-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 4px 0 0 0;
+}
+
+.bento-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--glass-shadow);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.glass-card:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-hover);
+}
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), rgba(255,255,255,0.4), transparent);
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(79,106,245,0.15), rgba(139,92,246,0.15));
+  color: var(--accent-blue);
+  flex-shrink: 0;
+}
+.stat-icon-wrap.green { background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(6,182,212,0.15)); color: var(--success); }
+.stat-icon-wrap.red { background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(236,72,153,0.15)); color: var(--danger); }
+.stat-icon-wrap.yellow { background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(249,115,22,0.15)); color: var(--warning); }
+
+.stat-label {
+  font-size: 12px;
   font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  margin-top: 2px;
+  letter-spacing: -1px;
+  color: var(--text-primary);
+}
+
+.glass-tabs {
+  display: flex;
+  gap: 0;
+  padding: 4px;
+  background: var(--tab-bg);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--tab-border);
+  width: fit-content;
+  overflow: hidden;
+}
+.glass-tab {
+  padding: 8px 18px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: calc(var(--radius-md) - 4px);
+  transition: all 0.2s;
+}
+.glass-tab:hover { color: var(--text-secondary); }
+.glass-tab.active {
+  background: var(--tab-active-bg);
+  color: var(--accent-blue);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.filter-btn {
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-inner-bg);
+  backdrop-filter: blur(10px);
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+.filter-btn:hover {
+  background: var(--glass-inner-hover);
+  color: var(--text-primary);
+}
+.filter-btn.active {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 16px rgba(79, 106, 245, 0.25);
+}
+
+.glass-search-sm {
+  width: 240px;
+}
+.glass-search-sm :deep(.n-input__input-el) {
+  background: transparent !important;
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+}
+.glass-search-sm :deep(.n-input__border) {
+  border: none !important;
+}
+.glass-search-sm :deep(.n-input__state-border) {
+  border: none !important;
+}
+
+.kanban-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1200px) {
+  .bento-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .kanban-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .bento-grid { grid-template-columns: 1fr !important; }
+  .kanban-grid { grid-template-columns: 1fr; }
+  .page-header { flex-direction: column; gap: 16px; }
 }
 </style>

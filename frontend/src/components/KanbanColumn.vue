@@ -1,35 +1,35 @@
 <template>
-  <div style="background: #f8fafc; border-radius: 8px; padding: 12px; min-height: 400px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px;">
-      <span style="font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+  <div class="kanban-col-glass">
+    <div class="kanban-header">
+      <span class="kanban-title">
         <IconSvg :name="icon" :size="16" />
         {{ title }}
       </span>
-      <n-tag size="small" round>{{ totalCount }}</n-tag>
+      <span class="kanban-count">{{ totalCount }}</span>
     </div>
 
-    <!-- Overdue cards in this column (for todo) -->
+    <!-- Overdue cards -->
     <div
       v-for="task in overdueTasks"
       :key="task.id"
-      style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 12px; margin-bottom: 8px; cursor: pointer;"
+      class="task-card-glass overdue"
       @click="emit('view', task)"
     >
-      <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
-        <n-tag size="tiny" type="error">逾期</n-tag>
-        <n-tag size="tiny">{{ task.priority }}</n-tag>
+      <div class="task-card-tags">
+        <span class="tag tag-red">逾期</span>
+        <span class="tag" :class="getPriorityClass(task.priority)">{{ task.priority }}</span>
       </div>
-      <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">{{ task.taskCode }} {{ task.title }}</div>
-      <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">
-        <IconSvg name="folder" :size="12" color="#64748b" /> {{ task.project?.name || '-' }}
+      <div class="task-card-title">{{ task.taskCode }} {{ task.title }}</div>
+      <div class="task-card-project">
+        <IconSvg name="folder" :size="12" color="var(--text-muted)" /> {{ task.project?.name || '-' }}
       </div>
-      <div v-if="task.plannedHours" style="margin-bottom: 8px;">
+      <div v-if="task.plannedHours" class="task-card-hours">
         <n-progress :percentage="getHoursPct(task)" type="line" :height="4" :show-indicator="false" />
-        <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">{{ task.actualHours || 0 }}h / {{ task.plannedHours }}h</div>
+        <div class="hours-text">{{ task.actualHours || 0 }}h / {{ task.plannedHours }}h</div>
       </div>
-      <div style="display: flex; gap: 6px;">
-        <n-button size="tiny" type="primary" @click.stop="emit('start', task)">開始</n-button>
-        <n-button size="tiny" @click.stop="emit('logHours', task)">工時</n-button>
+      <div class="task-card-actions">
+        <button class="btn-sm btn-primary-sm" @click.stop="emit('start', task)">開始</button>
+        <button class="btn-sm btn-ghost-sm" @click.stop="emit('logHours', task)">工時</button>
       </div>
     </div>
 
@@ -37,40 +37,28 @@
     <div
       v-for="task in tasks"
       :key="task.id"
-      style="background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; margin-bottom: 8px; cursor: pointer;"
+      class="task-card-glass"
       @click="emit('view', task)"
     >
-      <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
-        <n-tag size="tiny" :type="getPriorityType(task.priority)">{{ task.priority }}</n-tag>
+      <div class="task-card-tags">
+        <span class="tag" :class="getPriorityClass(task.priority)">{{ task.priority }}</span>
       </div>
-      <div style="font-size: 14px; font-weight: 500; margin-bottom: 8px;">{{ task.taskCode }} {{ task.title }}</div>
-      <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">
-        <IconSvg name="folder" :size="12" color="#64748b" /> {{ task.project?.name || '-' }}
+      <div class="task-card-title">{{ task.taskCode }} {{ task.title }}</div>
+      <div class="task-card-project">
+        <IconSvg name="folder" :size="12" color="var(--text-muted)" /> {{ task.project?.name || '-' }}
       </div>
-      <div v-if="task.plannedHours" style="margin-bottom: 8px;">
+      <div v-if="task.plannedHours" class="task-card-hours">
         <n-progress :percentage="getHoursPct(task)" type="line" :height="4" :show-indicator="false" />
-        <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">{{ task.actualHours || 0 }}h / {{ task.plannedHours }}h</div>
+        <div class="hours-text">{{ task.actualHours || 0 }}h / {{ task.plannedHours }}h</div>
       </div>
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 4px;"><IconSvg name="calendar" :size="12" color="#94a3b8" /> {{ formatDate(task.dueDate) }}</span>
-        <div style="display: flex; gap: 6px;">
-          <n-button
-            v-if="task.status === 'TODO'"
-            size="tiny"
-            type="primary"
-            @click.stop="emit('start', task)"
-          >開始</n-button>
-          <n-button
-            v-if="task.status === 'IN_PROGRESS'"
-            size="tiny"
-            type="success"
-            @click.stop="emit('complete', task)"
-          >完成</n-button>
-          <n-button
-            v-if="task.status === 'IN_PROGRESS'"
-            size="tiny"
-            @click.stop="emit('logHours', task)"
-          >工時</n-button>
+      <div class="task-card-footer">
+        <span class="due-date">
+          <IconSvg name="calendar" :size="12" color="var(--text-muted)" /> {{ formatDate(task.dueDate) }}
+        </span>
+        <div class="task-card-actions">
+          <button v-if="task.status === 'TODO'" class="btn-sm btn-primary-sm" @click.stop="emit('start', task)">開始</button>
+          <button v-if="task.status === 'IN_PROGRESS'" class="btn-sm btn-success-sm" @click.stop="emit('complete', task)">完成</button>
+          <button v-if="task.status === 'IN_PROGRESS'" class="btn-sm btn-ghost-sm" @click.stop="emit('logHours', task)">工時</button>
         </div>
       </div>
     </div>
@@ -81,14 +69,13 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { NButton, NEmpty, NProgress, NTag } from 'naive-ui';
+import { NEmpty, NProgress } from 'naive-ui';
 import IconSvg from './IconSvg.vue';
 import type { Task } from '../types';
 
 const props = defineProps<{
   title: string;
   icon: string;
-  color: string;
   tasks: Task[];
   overdueTasks?: Task[];
 }>();
@@ -108,16 +95,170 @@ function formatDate(dateStr: string | undefined): string {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
-function getPriorityType(p: string): 'error' | 'warning' | 'info' | 'default' {
-  if (p === 'P0') return 'error';
-  if (p === 'P1') return 'warning';
-  if (p === 'P2') return 'info';
-  return 'default';
+function getPriorityClass(p: string): string {
+  if (p === 'P0') return 'tag-red';
+  if (p === 'P1') return 'tag-yellow';
+  return 'tag-blue';
 }
 
 function getHoursPct(task: Task): number {
   if (!task.plannedHours || task.plannedHours <= 0) return 0;
-  const actual = task.actualHours || 0;
-  return Math.min(Math.round((actual / task.plannedHours) * 100), 100);
+  return Math.min(Math.round(((task.actualHours || 0) / task.plannedHours) * 100), 100);
 }
 </script>
+
+<style scoped>
+.kanban-col-glass {
+  background: var(--glass-inner-bg);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  padding: 16px;
+  min-height: 400px;
+}
+
+.kanban-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.kanban-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kanban-count {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-blue);
+  background: rgba(79,106,245,0.1);
+  padding: 2px 10px;
+  border-radius: 10px;
+}
+
+.task-card-glass {
+  background: rgba(255,255,255,0.5);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  padding: 14px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.task-card-glass:hover {
+  background: rgba(255,255,255,0.7);
+  border-color: var(--glass-border-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--glass-shadow);
+}
+
+.task-card-glass.overdue {
+  background: rgba(239,68,68,0.05);
+  border-color: rgba(239,68,68,0.15);
+}
+
+.task-card-tags {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.tag-blue { background: rgba(79,106,245,0.1); color: var(--accent-blue); }
+.tag-red { background: rgba(239,68,68,0.1); color: var(--danger); }
+.tag-yellow { background: rgba(245,158,11,0.1); color: var(--warning); }
+.tag-green { background: rgba(16,185,129,0.1); color: var(--success); }
+
+.task-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.task-card-project {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.task-card-hours {
+  margin-bottom: 8px;
+}
+
+.hours-text {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.task-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.due-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.task-card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-primary-sm {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: white;
+}
+
+.btn-success-sm {
+  background: linear-gradient(135deg, var(--success), var(--accent-cyan));
+  color: white;
+}
+
+.btn-ghost-sm {
+  background: var(--glass-inner-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--glass-border);
+}
+
+.btn-ghost-sm:hover {
+  background: var(--glass-inner-hover);
+}
+</style>

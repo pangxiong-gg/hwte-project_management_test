@@ -1,19 +1,20 @@
 <template>
   <div>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-      <n-h2 style="margin: 0;">
-        {{ project?.name || '專案詳情' }}
-        <n-tag :type="statusType" size="small">{{ statusText }}</n-tag>
-        <n-tag
-          v-if="project?.mode"
-          size="small"
-          :style="modeTagStyle"
-          style="margin-left: 8px;"
-        >
-          {{ modeLabel }}
-        </n-tag>
-      </n-h2>
-      <n-button @click="$router.push('/')">返回列表</n-button>
+    <div class="page-header">
+      <div class="project-title-group">
+        <div class="project-icon-xl">{{ project?.code?.charAt(0) || 'P' }}</div>
+        <div>
+          <div class="project-title">
+            {{ project?.name || '專案詳情' }}
+            <n-tag :type="statusType" size="small">{{ statusText }}</n-tag>
+            <n-tag v-if="project?.mode" size="small" :style="modeTagStyle" style="margin-left: 8px;">{{ modeLabel }}</n-tag>
+          </div>
+          <div class="project-meta">
+            <span style="font-size: 13px; color: var(--text-muted);">{{ project?.code }} · {{ requirements.length }} 需求 · {{ tasks.length }} 任務 · {{ bugs.length }} Bug</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn-ghost" @click="$router.push('/')">返回列表</button>
     </div>
 
     <!-- 階段流程（瀑布式/混合型） -->
@@ -51,14 +52,26 @@
         <n-descriptions-item label="建立時間">{{ formatDate(project?.createdAt) }}</n-descriptions-item>
         <n-descriptions-item label="當前階段" :span="2">{{ currentPhaseName }}</n-descriptions-item>
       </n-descriptions>
-      <n-p style="margin-top: 12px; color: #64748b;">{{ project?.description || '無描述' }}</n-p>
+      <n-p style="margin-top: 12px; color: var(--text-secondary);">{{ project?.description || '無描述' }}</n-p>
     </n-card>
 
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px;">
-      <n-statistic label="需求數" :value="requirements.length" />
-      <n-statistic label="任務數" :value="tasks.length" />
-      <n-statistic label="Bug 數" :value="bugs.length" />
-      <n-statistic label="測試用例" :value="testCases.length" />
+    <div class="bento-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
+      <div class="glass-card stat-card-flat">
+        <div class="stat-label">需求數</div>
+        <div class="stat-value" style="margin-top: 8px;">{{ requirements.length }}</div>
+      </div>
+      <div class="glass-card stat-card-flat">
+        <div class="stat-label">任務數</div>
+        <div class="stat-value" style="margin-top: 8px; color: var(--accent-blue);">{{ tasks.length }}</div>
+      </div>
+      <div class="glass-card stat-card-flat">
+        <div class="stat-label">Bug 數</div>
+        <div class="stat-value" style="margin-top: 8px; color: var(--danger);">{{ bugs.length }}</div>
+      </div>
+      <div class="glass-card stat-card-flat">
+        <div class="stat-label">測試用例</div>
+        <div class="stat-value" style="margin-top: 8px; color: var(--success);">{{ testCases.length }}</div>
+      </div>
     </div>
 
     <n-tabs type="line" v-model:value="activeTab">
@@ -181,7 +194,7 @@
           :tasks="tasks"
           :project-id="projectId"
           :user-role="authStore.user?.role"
-          @refresh="loadProjectData"
+          @refresh="loadData"
         />
       </n-tab-pane>
 
@@ -205,14 +218,14 @@
           :type="changeTypeColor(change.changeType)"
         >
           <div style="font-size: 13px; font-weight: 500;">{{ changeTypeLabel(change.changeType) }}</div>
-          <div style="font-size: 12px; color: #64748b; margin-top: 4px;">
+          <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
             <span v-if="change.oldValue">{{ change.oldValue }}</span>
-            <span v-else style="color: #cbd5e1;">（空）</span>
+            <span v-else style="color: var(--text-muted);">（空）</span>
             <span style="margin: 0 8px;">→</span>
             <span v-if="change.newValue">{{ change.newValue }}</span>
-            <span v-else style="color: #cbd5e1;">（空）</span>
+            <span v-else style="color: var(--text-muted);">（空）</span>
           </div>
-          <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
             {{ change.changedBy?.name }} · {{ formatDate(change.createdAt) }}
           </div>
         </n-timeline-item>
@@ -1202,6 +1215,7 @@ function openTaskModal() {
     requirementId: null,
     assigneeId: null,
     plannedHours: null,
+    tagIds: [],
   };
   showTaskModal.value = true;
 }
@@ -1216,6 +1230,7 @@ function openBugModal() {
     requirementId: null,
     taskId: null,
     assigneeId: null,
+    tagIds: [],
   };
   showBugModal.value = true;
 }
@@ -1442,6 +1457,112 @@ onMounted(loadData);
 </script>
 
 <style scoped>
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
+}
+
+.project-title-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.project-icon-xl {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: white;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  box-shadow: 0 4px 16px rgba(79, 106, 245, 0.25);
+}
+
+.project-title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-meta {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  align-items: center;
+}
+
+.bento-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--glass-shadow);
+  position: relative;
+  overflow: hidden;
+}
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), rgba(255,255,255,0.4), transparent);
+}
+
+.stat-card-flat {
+  text-align: center;
+  padding: 20px;
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--text-primary);
+}
+
+.btn-ghost {
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--btn-ghost-border);
+  background: var(--btn-ghost-bg);
+  backdrop-filter: blur(10px);
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+.btn-ghost:hover {
+  background: var(--btn-ghost-hover);
+  color: var(--text-primary);
+}
+
 .phase-pipeline {
   display: flex;
   align-items: flex-start;
@@ -1466,45 +1587,45 @@ onMounted(loadData);
   align-items: center;
   justify-content: center;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 8px;
   border: 2px solid;
   transition: all 0.2s;
 }
 
 .phase-pending .phase-dot {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-  color: #94a3b8;
+  background: var(--glass-inner-bg);
+  border-color: var(--glass-border);
+  color: var(--text-muted);
 }
 
 .phase-active .phase-dot {
-  background: linear-gradient(135deg, #3b82f6, #06b6d4);
-  border-color: #3b82f6;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+  border-color: var(--accent-blue);
   color: white;
 }
 
 .phase-completed .phase-dot {
-  background: #22c55e;
-  border-color: #22c55e;
+  background: var(--success);
+  border-color: var(--success);
   color: white;
 }
 
 .phase-name {
   font-size: 13px;
-  font-weight: 500;
-  color: #1e293b;
+  font-weight: 600;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .phase-status-text {
   font-size: 11px;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .phase-task-count {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -1512,12 +1633,20 @@ onMounted(loadData);
   flex: 1;
   min-width: 24px;
   height: 2px;
-  background: #e2e8f0;
+  background: var(--glass-border);
   margin-top: 16px;
   transition: background 0.2s;
 }
 
 .phase-connector.connector-active {
-  background: #22c55e;
+  background: var(--success);
+}
+
+@media (max-width: 1200px) {
+  .bento-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 768px) {
+  .bento-grid { grid-template-columns: 1fr !important; }
+  .page-header { flex-direction: column; gap: 16px; }
 }
 </style>

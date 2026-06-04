@@ -1,14 +1,12 @@
 <template>
-  <n-card style="margin-bottom: 16px;" size="small">
-    <template #header>
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-weight: 500; display: flex; align-items: center; gap: 6px;">
-          <IconSvg :name="icon" :size="16" />
-          {{ title }}
-        </span>
-        <n-tag size="small" round>{{ tasks.length }}</n-tag>
-      </div>
-    </template>
+  <div class="glass-card task-section">
+    <div class="section-header">
+      <span class="section-title">
+        <IconSvg :name="icon" :size="16" />
+        {{ title }}
+      </span>
+      <span class="section-count">{{ tasks.length }}</span>
+    </div>
     <n-data-table
       :columns="columns"
       :data="tasks"
@@ -16,12 +14,12 @@
       size="small"
       :bordered="false"
     />
-  </n-card>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { h } from 'vue';
-import { NButton, NCard, NDataTable, NProgress, NTag } from 'naive-ui';
+import { NButton, NDataTable, NProgress } from 'naive-ui';
 import IconSvg from './IconSvg.vue';
 import type { Task } from '../types';
 
@@ -44,11 +42,10 @@ function formatDate(dateStr: string | undefined): string {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
-function getPriorityType(p: string): 'error' | 'warning' | 'info' | 'default' {
-  if (p === 'P0') return 'error';
-  if (p === 'P1') return 'warning';
-  if (p === 'P2') return 'info';
-  return 'default';
+function getPriorityClass(p: string): string {
+  if (p === 'P0') return 'tag-red';
+  if (p === 'P1') return 'tag-yellow';
+  return 'tag-blue';
 }
 
 const columns = [
@@ -58,11 +55,11 @@ const columns = [
     minWidth: 280,
     render(row: Task) {
       return h('div', {}, [
-        h('div', { style: 'font-weight: 500; margin-bottom: 4px;' }, `${row.taskCode} ${row.title}`),
-        h('div', { style: 'font-size: 12px; color: #64748b; display: flex; gap: 8px; align-items: center;' }, [
-          h(NTag, { size: 'tiny', type: 'info', bordered: false }, { default: () => row.project?.name || '-' }),
-          row.requirement ? h('span', { style: 'display: flex; align-items: center; gap: 4px;' }, [h(IconSvg, { name: 'file-text', size: 12, color: '#64748b' }), `${row.requirement.reqCode}`]) : null,
-          h(NTag, { size: 'tiny', type: getPriorityType(row.priority) }, { default: () => row.priority }),
+        h('div', { style: 'font-weight: 600; margin-bottom: 4px; color: var(--text-primary);' }, `${row.taskCode} ${row.title}`),
+        h('div', { style: 'font-size: 12px; color: var(--text-secondary); display: flex; gap: 8px; align-items: center; flex-wrap: wrap;' }, [
+          h('span', { style: 'font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: rgba(79,106,245,0.1); color: var(--accent-blue);' }, row.project?.name || '-'),
+          row.requirement ? h('span', { style: 'display: flex; align-items: center; gap: 4px; color: var(--text-muted);' }, [h(IconSvg, { name: 'file-text', size: 12, color: 'var(--text-muted)' }), `${row.requirement.reqCode}`]) : null,
+          h('span', { class: getPriorityClass(row.priority), style: 'font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; display: inline-block;' }, row.priority),
         ]),
       ]);
     },
@@ -72,11 +69,11 @@ const columns = [
     key: 'hours',
     width: 120,
     render(row: Task) {
-      if (!row.plannedHours) return h('span', { style: 'color: #94a3b8; font-size: 13px;' }, '-');
+      if (!row.plannedHours) return h('span', { style: 'color: var(--text-muted); font-size: 13px;' }, '-');
       const actual = row.actualHours || 0;
       const pct = Math.min(Math.round((actual / row.plannedHours) * 100), 100);
       return h('div', {}, [
-        h('div', { style: 'font-size: 12px; margin-bottom: 4px;' }, `${actual}h / ${row.plannedHours}h`),
+        h('div', { style: 'font-size: 12px; margin-bottom: 4px; color: var(--text-secondary);' }, `${actual}h / ${row.plannedHours}h`),
         h(NProgress, {
           type: 'line',
           percentage: pct,
@@ -94,7 +91,7 @@ const columns = [
     render(row: Task) {
       const isOverdue = row.isOverdue;
       return h('span', {
-        style: `font-size: 13px; ${isOverdue ? 'color: #ef4444; font-weight: 500;' : 'color: #64748b;'}`
+        style: `font-size: 13px; ${isOverdue ? 'color: var(--danger); font-weight: 600;' : 'color: var(--text-secondary);'}`
       }, formatDate(row.dueDate) + (isOverdue ? ' ⚠️' : ''));
     },
   },
@@ -104,41 +101,77 @@ const columns = [
     width: 180,
     render(row: Task) {
       const buttons: any[] = [];
-
       if (row.status === 'TODO') {
-        buttons.push(
-          h(NButton, {
-            size: 'tiny',
-            type: 'primary',
-            onClick: () => emit('start', row),
-          }, { default: () => '開始' })
-        );
+        buttons.push(h(NButton, { size: 'tiny', type: 'primary', onClick: () => emit('start', row) }, { default: () => '開始' }));
       } else if (row.status === 'IN_PROGRESS') {
-        buttons.push(
-          h(NButton, {
-            size: 'tiny',
-            type: 'success',
-            onClick: () => emit('complete', row),
-          }, { default: () => '完成' })
-        );
-        buttons.push(
-          h(NButton, {
-            size: 'tiny',
-            onClick: () => emit('logHours', row),
-          }, { default: () => '填報工時' })
-        );
+        buttons.push(h(NButton, { size: 'tiny', type: 'success', onClick: () => emit('complete', row) }, { default: () => '完成' }));
+        buttons.push(h(NButton, { size: 'tiny', onClick: () => emit('logHours', row) }, { default: () => '填報工時' }));
       }
-
-      buttons.push(
-        h(NButton, {
-          size: 'tiny',
-          text: true,
-          onClick: () => emit('view', row),
-        }, { default: () => '詳情' })
-      );
-
+      buttons.push(h(NButton, { size: 'tiny', text: true, onClick: () => emit('view', row) }, { default: () => '詳情' }));
       return h('div', { style: 'display: flex; gap: 6px;' }, buttons);
     },
   },
 ];
 </script>
+
+<style scoped>
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--glass-shadow);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), rgba(255,255,255,0.4), transparent);
+}
+
+.task-section {
+  padding-bottom: 12px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.section-count {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-blue);
+  background: rgba(79,106,245,0.1);
+  padding: 2px 10px;
+  border-radius: 10px;
+}
+
+.tag-blue { background: rgba(79,106,245,0.1); color: var(--accent-blue); }
+.tag-red { background: rgba(239,68,68,0.1); color: var(--danger); }
+.tag-yellow { background: rgba(245,158,11,0.1); color: var(--warning); }
+.tag-green { background: rgba(16,185,129,0.1); color: var(--success); }
+</style>

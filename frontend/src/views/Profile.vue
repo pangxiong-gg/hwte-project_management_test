@@ -1,52 +1,57 @@
 <template>
   <div>
-    <n-h2>個人資料</n-h2>
+    <h1 class="page-title">個人資料</h1>
 
-    <n-card title="基本資訊" style="max-width: 600px; margin-bottom: 20px;">
-      <n-descriptions :columns="2" bordered>
-        <n-descriptions-item label="姓名">{{ user?.name }}</n-descriptions-item>
-        <n-descriptions-item label="Email">{{ user?.email }}</n-descriptions-item>
-        <n-descriptions-item label="角色">{{ roleLabel }}</n-descriptions-item>
-        <n-descriptions-item label="狀態">{{ statusLabel }}</n-descriptions-item>
-        <n-descriptions-item label="建立時間" :span="2">{{ formatDate(user?.createdAt) }}</n-descriptions-item>
-      </n-descriptions>
-    </n-card>
+    <div class="profile-grid">
+      <div class="glass-card">
+        <div class="card-header-text">基本資訊</div>
+        <n-descriptions :columns="2" bordered>
+          <n-descriptions-item label="姓名">{{ user?.name }}</n-descriptions-item>
+          <n-descriptions-item label="Email">{{ user?.email }}</n-descriptions-item>
+          <n-descriptions-item label="角色">{{ roleLabel }}</n-descriptions-item>
+          <n-descriptions-item label="狀態">{{ statusLabel }}</n-descriptions-item>
+          <n-descriptions-item label="建立時間" :span="2">{{ formatDate(user?.createdAt) }}</n-descriptions-item>
+        </n-descriptions>
+      </div>
 
-    <n-card title="郵件通知" style="max-width: 600px; margin-bottom: 20px;">
-      <n-form>
-        <n-form-item label="郵件通知開關">
-          <n-switch v-model:value="emailNotifications" @update:value="toggleEmailNotifications">
-            <template #checked>開啟</template>
-            <template #unchecked>關閉</template>
-          </n-switch>
-        </n-form-item>
-        <n-alert v-if="emailNotifications" type="info" :show-icon="false">
-          當有人指派任務給您、任務狀態變更、或有人在評論中提到您時，系統將發送郵件通知到 {{ user?.email }}
-        </n-alert>
-        <n-alert v-else type="warning" :show-icon="false">
-          已關閉郵件通知，您只會在系統內收到通知
-        </n-alert>
-      </n-form>
-    </n-card>
+      <div class="glass-card">
+        <div class="card-header-text">郵件通知</div>
+        <n-form>
+          <n-form-item label="郵件通知開關">
+            <n-switch v-model:value="emailNotifications" @update:value="toggleEmailNotifications">
+              <template #checked>開啟</template>
+              <template #unchecked>關閉</template>
+            </n-switch>
+          </n-form-item>
+          <n-alert v-if="emailNotifications" type="info" :show-icon="false">
+            當有人指派任務給您、任務狀態變更、或有人在評論中提到您時，系統將發送郵件通知到 {{ user?.email }}
+          </n-alert>
+          <n-alert v-else type="warning" :show-icon="false">
+            已關閉郵件通知，您只會在系統內收到通知
+          </n-alert>
+        </n-form>
+      </div>
 
-    <n-card title="修改資料" style="max-width: 600px;">
-      <n-form :model="form" :rules="rules" ref="formRef">
-        <n-form-item label="姓名" path="name">
-          <n-input v-model:value="form.name" placeholder="請輸入姓名" />
-        </n-form-item>
-        <n-form-item label="新密碼" path="password">
-          <n-input v-model:value="form.password" type="password" placeholder="不修改請留空" />
-        </n-form-item>
-        <n-form-item label="確認密碼" path="confirmPassword">
-          <n-input v-model:value="form.confirmPassword" type="password" placeholder="不修改請留空" />
-        </n-form-item>
-        <n-form-item>
-          <n-space>
-            <n-button type="primary" :loading="submitting" @click="handleSubmit">儲存變更</n-button>
-          </n-space>
-        </n-form-item>
-      </n-form>
-    </n-card>
+      <div class="glass-card">
+        <div class="card-header-text">修改資料</div>
+        <n-form :model="form" :rules="rules" ref="formRef">
+          <n-form-item label="姓名" path="name">
+            <n-input v-model:value="form.name" placeholder="請輸入姓名" />
+          </n-form-item>
+          <n-form-item label="新密碼" path="password">
+            <n-input v-model:value="form.password" type="password" placeholder="不修改請留空" />
+          </n-form-item>
+          <n-form-item label="確認密碼" path="confirmPassword">
+            <n-input v-model:value="form.confirmPassword" type="password" placeholder="不修改請留空" />
+          </n-form-item>
+          <n-form-item>
+            <n-space>
+              <n-button type="primary" :loading="submitting" @click="handleSubmit">儲存變更</n-button>
+            </n-space>
+          </n-form-item>
+        </n-form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -167,3 +172,64 @@ async function handleSubmit() {
 
 onMounted(loadUser);
 </script>
+
+<style scoped>
+.page-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  margin: 0 0 28px 0;
+  color: var(--text-primary);
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  max-width: 900px;
+}
+
+.profile-grid > div:last-child {
+  grid-column: span 2;
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--glass-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), rgba(255,255,255,0.4), transparent);
+}
+
+.card-header-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+  .profile-grid > div:last-child {
+    grid-column: span 1;
+  }
+}
+</style>

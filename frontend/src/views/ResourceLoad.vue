@@ -1,45 +1,54 @@
 <template>
   <div>
-    <!-- Page Header -->
-    <div style="margin-bottom: 24px;">
-      <n-h2 style="margin: 0;">資源負載</n-h2>
-      <n-text style="font-size: 14px; color: #64748b;">團隊成員工作分配與負載監控</n-text>
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">資源負載</h1>
+        <p class="page-subtitle">團隊成員工作分配與負載監控</p>
+      </div>
     </div>
 
     <!-- Summary Cards -->
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px;">
-      <n-card size="small">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <IconSvg name="list" :size="18" color="#64748b" />
-          <span style="font-size: 13px; color: #64748b;">團隊總任務</span>
+    <div class="bento-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 24px;">
+      <div class="glass-card stat-card">
+        <div class="stat-icon-wrap">
+          <IconSvg name="list" :size="20" color="var(--accent-blue)" />
         </div>
-        <div style="font-size: 28px; font-weight: 600; color: #1e293b;">{{ summary.totalActiveTasks }}</div>
-      </n-card>
-      <n-card size="small">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <IconSvg name="layout-grid" :size="18" color="#64748b" />
-          <span style="font-size: 13px; color: #64748b;">平均負載</span>
+        <div>
+          <div class="stat-label">團隊總任務</div>
+          <div class="stat-value">{{ summary.totalActiveTasks }}</div>
         </div>
-        <div style="font-size: 28px; font-weight: 600; color: #1e293b;">{{ summary.averageLoad }}%</div>
-      </n-card>
-      <n-card size="small">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <IconSvg name="alert-triangle" :size="18" color="#ef4444" />
-          <span style="font-size: 13px; color: #64748b;">超載人數</span>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="stat-icon-wrap" style="background: linear-gradient(135deg, rgba(79,106,245,0.15), rgba(139,92,246,0.15)); color: var(--accent-blue);">
+          <IconSvg name="layout-grid" :size="20" color="var(--accent-blue)" />
         </div>
-        <div style="font-size: 28px; font-weight: 600; color: #1e293b;">{{ summary.overloadedCount }}</div>
-      </n-card>
-      <n-card size="small">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-          <IconSvg name="tag" :size="18" color="#f59e0b" />
-          <span style="font-size: 13px; color: #64748b;">未指派任務</span>
+        <div>
+          <div class="stat-label">平均負載</div>
+          <div class="stat-value" style="color: var(--accent-blue);">{{ summary.averageLoad }}%</div>
         </div>
-        <div style="font-size: 28px; font-weight: 600; color: #1e293b;">{{ summary.unassignedCount }}</div>
-      </n-card>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="stat-icon-wrap red">
+          <IconSvg name="alert-triangle" :size="20" color="var(--danger)" />
+        </div>
+        <div>
+          <div class="stat-label">超載人數</div>
+          <div class="stat-value" style="color: var(--danger);">{{ summary.overloadedCount }}</div>
+        </div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="stat-icon-wrap yellow">
+          <IconSvg name="tag" :size="20" color="var(--warning)" />
+        </div>
+        <div>
+          <div class="stat-label">未指派任務</div>
+          <div class="stat-value" style="color: var(--warning);">{{ summary.unassignedCount }}</div>
+        </div>
+      </div>
     </div>
 
     <!-- Alerts -->
-    <n-alert v-if="overloadedMembers.length > 0" type="error" style="margin-bottom: 16px;">
+    <n-alert v-if="overloadedMembers.length > 0" type="error" style="margin-bottom: 20px;">
       <span v-for="(m, i) in overloadedMembers.slice(0, 2)" :key="m.id">
         <n-text strong>{{ m.name }}</n-text>
         <n-text type="error">（{{ m.loadPercentage }}% 超載 · {{ m.overdueCount }} 個逾期）</n-text>
@@ -47,7 +56,7 @@
       </span>
       <n-text v-if="overloadedMembers.length > 2">等 {{ overloadedMembers.length }} 人超載</n-text>
     </n-alert>
-    <n-alert v-else-if="warningMembers.length > 0" type="warning" style="margin-bottom: 16px;">
+    <n-alert v-else-if="warningMembers.length > 0" type="warning" style="margin-bottom: 20px;">
       <span v-for="(m, i) in warningMembers.slice(0, 2)" :key="m.id">
         <n-text strong>{{ m.name }}</n-text>
         <n-text type="warning">（{{ m.loadPercentage }}% 接近滿載）</n-text>
@@ -57,17 +66,17 @@
     </n-alert>
 
     <!-- View Toggle -->
-    <div class="view-tabs">
-      <button :class="{ active: viewMode === 'cards' }" @click="viewMode = 'cards'">成員卡片</button>
-      <button :class="{ active: viewMode === 'timeline' }" @click="viewMode = 'timeline'">時間軸</button>
-      <button :class="{ active: viewMode === 'chart' }" @click="viewMode = 'chart'">負載圖表</button>
+    <div class="glass-tabs" style="margin-bottom: 24px;">
+      <button :class="['glass-tab', { active: viewMode === 'cards' }]" @click="viewMode = 'cards'">成員卡片</button>
+      <button :class="['glass-tab', { active: viewMode === 'timeline' }]" @click="viewMode = 'timeline'">時間軸</button>
+      <button :class="['glass-tab', { active: viewMode === 'chart' }]" @click="viewMode = 'chart'">負載圖表</button>
     </div>
 
     <!-- Member Cards View -->
-    <div v-if="viewMode === 'cards'" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;">
-      <div v-for="m in members" :key="m.id" class="member-card" :class="{ overload: m.isOverloaded }">
+    <div v-if="viewMode === 'cards'" class="bento-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 24px;">
+      <div v-for="m in members" :key="m.id" class="glass-card member-card" :class="{ overload: m.isOverloaded }">
         <div class="member-header">
-          <div class="member-avatar">{{ m.name.charAt(0) }}</div>
+          <div class="glass-avatar">{{ m.name.charAt(0) }}</div>
           <div class="member-info">
             <div class="member-name">{{ m.name }}</div>
             <div class="member-role">{{ m.role }}</div>
@@ -78,11 +87,11 @@
         </div>
         <div class="member-stats">
           <div class="mini-stat">
-            <div class="mini-stat-value" :style="{ color: m.todoCount > 0 ? '#f59e0b' : '#94a3b8' }">{{ m.todoCount }}</div>
+            <div class="mini-stat-value" :style="{ color: m.todoCount > 0 ? 'var(--warning)' : 'var(--text-muted)' }">{{ m.todoCount }}</div>
             <div class="mini-stat-label">待辦</div>
           </div>
           <div class="mini-stat">
-            <div class="mini-stat-value" style="color: #3b82f6;">{{ m.inProgressCount }}</div>
+            <div class="mini-stat-value" style="color: var(--accent-blue);">{{ m.inProgressCount }}</div>
             <div class="mini-stat-label">進行中</div>
           </div>
           <div class="mini-stat">
@@ -94,12 +103,12 @@
           <span v-for="t in m.tasks.slice(0, 3)" :key="t.id" class="task-chip" :class="{ overdue: t.isOverdue }">
             {{ t.taskCode }}
           </span>
-          <span v-if="m.tasks.length > 3" class="task-chip" style="background: #f1f5f9; color: #64748b;">+{{ m.tasks.length - 3 }}</span>
+          <span v-if="m.tasks.length > 3" class="task-chip" style="background: var(--glass-inner-bg); color: var(--text-muted);">+{{ m.tasks.length - 3 }}</span>
         </div>
         <div class="hours-bar">
           <div class="hours-bar-label">
             <span>工時負載</span>
-            <span :style="{ color: m.isOverloaded ? '#ef4444' : m.isWarning ? '#f59e0b' : '#10b981' }">
+            <span :style="{ color: m.isOverloaded ? 'var(--danger)' : m.isWarning ? 'var(--warning)' : 'var(--success)' }">
               {{ m.actualHours }}h / {{ m.plannedHours }}h
             </span>
           </div>
@@ -110,25 +119,25 @@
       </div>
 
       <!-- Unassigned Card -->
-      <div v-if="unassigned.length > 0" class="member-card unassigned">
+      <div v-if="unassigned.length > 0" class="glass-card member-card unassigned">
         <div class="member-header">
-          <div class="member-avatar" style="background: #94a3b8;">?</div>
+          <div class="glass-avatar" style="background: linear-gradient(135deg, var(--text-muted), #666);">?</div>
           <div class="member-info">
             <div class="member-name">未指派任務</div>
             <div class="member-role">待分配</div>
           </div>
-          <div class="load-indicator" style="background: #f1f5f9; color: #64748b;">{{ unassigned.length }}</div>
+          <div class="load-indicator" style="background: var(--glass-inner-bg); color: var(--text-muted);">{{ unassigned.length }}</div>
         </div>
         <div class="task-chips">
           <span v-for="t in unassigned.slice(0, 4)" :key="t.id" class="task-chip">{{ t.taskCode }}</span>
-          <span v-if="unassigned.length > 4" class="task-chip" style="background: #f1f5f9; color: #64748b;">+{{ unassigned.length - 4 }}</span>
+          <span v-if="unassigned.length > 4" class="task-chip" style="background: var(--glass-inner-bg); color: var(--text-muted);">+{{ unassigned.length - 4 }}</span>
         </div>
       </div>
     </div>
 
     <!-- Chart View -->
-    <div v-else-if="viewMode === 'chart'" class="chart-container">
-      <div class="chart-title">預估工時 vs 標準容量（40h/周）</div>
+    <div v-else-if="viewMode === 'chart'" class="glass-card" style="margin-bottom: 24px;">
+      <div class="card-header-text">預估工時 vs 標準容量（40h/周）</div>
       <div class="bar-chart">
         <div v-for="m in members" :key="m.id" class="bar-row">
           <div class="bar-label">{{ m.name }}</div>
@@ -137,21 +146,21 @@
               {{ m.plannedHours }}h
             </div>
           </div>
-          <div class="bar-value" :style="{ color: m.isOverloaded ? '#ef4444' : m.isWarning ? '#f59e0b' : '#10b981' }">
+          <div class="bar-value" :style="{ color: m.isOverloaded ? 'var(--danger)' : m.isWarning ? 'var(--warning)' : 'var(--success)' }">
             {{ m.loadPercentage }}%
           </div>
           <div class="bar-detail">{{ m.totalTasks }} 任務 · {{ m.overdueCount }} 逾期</div>
         </div>
       </div>
       <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background: #10b981;"></div>正常 (&lt;80%)</div>
-        <div class="legend-item"><div class="legend-dot" style="background: #f59e0b;"></div>警告 (80-100%)</div>
-        <div class="legend-item"><div class="legend-dot" style="background: #ef4444;"></div>超載 (&gt;100%)</div>
+        <div class="legend-item"><div class="legend-dot normal"></div>正常 (&lt;80%)</div>
+        <div class="legend-item"><div class="legend-dot warning"></div>警告 (80-100%)</div>
+        <div class="legend-item"><div class="legend-dot danger"></div>超載 (&gt;100%)</div>
       </div>
     </div>
 
     <!-- Timeline View -->
-    <div v-else-if="viewMode === 'timeline'" class="timeline-container">
+    <div v-else-if="viewMode === 'timeline'" class="glass-card" style="margin-bottom: 24px; padding: 0; overflow: hidden;">
       <div class="timeline-header">
         <div class="timeline-member-col">成員</div>
         <div class="timeline-dates">
@@ -174,9 +183,6 @@
               <div class="timeline-member-name">{{ m.name }}</div>
               <div class="timeline-member-load" :class="{ overload: m.isOverloaded, warning: m.isWarning }">
                 {{ m.plannedHours }}h / 40h
-                <span v-if="m.isOverloaded"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><triangle points="12 2 22 22 2 22"/></svg></span>
-                <span v-else-if="m.isWarning"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><zap points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg></span>
-                <span v-else><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></span>
               </div>
             </div>
           </div>
@@ -200,16 +206,17 @@
     </div>
 
     <!-- Unassigned Tasks Table -->
-    <n-card v-if="unassigned.length > 0" title="未指派任務" size="small" style="margin-top: 20px;">
+    <div v-if="unassigned.length > 0" class="glass-card">
+      <div class="card-header-text">未指派任務</div>
       <n-data-table :columns="unassignedColumns" :data="unassigned" size="small" />
-    </n-card>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useMessage } from 'naive-ui';
-import { NAlert, NButton, NCard, NDataTable, NH2, NText } from 'naive-ui';
+import { NAlert, NDataTable, NText } from 'naive-ui';
 import IconSvg from '../components/IconSvg.vue';
 import { resourceLoadApi } from '../services/api';
 
@@ -271,7 +278,6 @@ function getLoadClass(pct: number): string {
   return 'normal';
 }
 
-// 時間軸：從今天開始的 14 天
 const TIMELINE_DAYS = 14;
 const timelineStart = computed(() => {
   const d = new Date();
@@ -303,11 +309,11 @@ const timelineDates = computed(() => {
 
 function getTimelineTasks(tasks: MemberTask[]) {
   const colors: Record<string, string> = {
-    TODO: '#94a3b8',
-    IN_PROGRESS: '#3b82f6',
-    CODE_REVIEW: '#8b5cf6',
-    TESTING: '#f59e0b',
-    DONE: '#22c55e',
+    TODO: 'var(--text-muted)',
+    IN_PROGRESS: 'var(--accent-blue)',
+    CODE_REVIEW: 'var(--accent-purple)',
+    TESTING: 'var(--warning)',
+    DONE: 'var(--success)',
   };
   return tasks
     .filter((t) => t.status !== 'DONE')
@@ -321,27 +327,14 @@ function getTimelineTasks(tasks: MemberTask[]) {
       let leftMs = start.getTime() - timelineStart.value.getTime();
       let widthMs = end.getTime() - start.getTime();
 
-      // 裁剪到時間軸範圍
-      if (leftMs < 0) {
-        widthMs += leftMs;
-        leftMs = 0;
-      }
-      if (leftMs + widthMs > totalMs) {
-        widthMs = totalMs - leftMs;
-      }
+      if (leftMs < 0) { widthMs += leftMs; leftMs = 0; }
+      if (leftMs + widthMs > totalMs) widthMs = totalMs - leftMs;
       if (widthMs < 0) widthMs = 0;
 
       const left = (leftMs / totalMs) * 100;
-      const width = Math.max((widthMs / totalMs) * 100, 2); // 最小 2%
+      const width = Math.max((widthMs / totalMs) * 100, 2);
 
-      return {
-        id: t.id,
-        taskCode: t.taskCode,
-        title: `${t.taskCode}: ${t.title} (${t.projectName})`,
-        left,
-        width,
-        color: colors[t.status] || '#64748b',
-      };
+      return { id: t.id, taskCode: t.taskCode, title: `${t.taskCode}: ${t.title} (${t.projectName})`, left, width, color: colors[t.status] || 'var(--text-muted)' };
     })
     .filter((t) => t.width > 0);
 }
@@ -372,16 +365,153 @@ onMounted(loadData);
 </script>
 
 <style scoped>
-.member-card {
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  padding: 16px;
-  transition: box-shadow 0.15s;
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
 }
-.member-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-.member-card.overload { border-color: #fca5a5; }
-.member-card.unassigned { border-style: dashed; opacity: 0.8; }
+.page-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  margin: 0;
+  color: var(--text-primary);
+}
+.page-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 4px 0 0 0;
+}
+
+.bento-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--glass-shadow);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.glass-card:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-hover);
+}
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), rgba(255,255,255,0.4), transparent);
+}
+
+.card-header-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.stat-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(79,106,245,0.15), rgba(139,92,246,0.15));
+  color: var(--accent-blue);
+  flex-shrink: 0;
+}
+.stat-icon-wrap.green { background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(6,182,212,0.15)); color: var(--success); }
+.stat-icon-wrap.red { background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(236,72,153,0.15)); color: var(--danger); }
+.stat-icon-wrap.yellow { background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(249,115,22,0.15)); color: var(--warning); }
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  margin-top: 2px;
+  letter-spacing: -1px;
+  color: var(--text-primary);
+}
+
+.glass-tabs {
+  display: flex;
+  gap: 0;
+  padding: 4px;
+  background: var(--tab-bg);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--tab-border);
+  width: fit-content;
+  overflow: hidden;
+}
+.glass-tab {
+  padding: 8px 20px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  border-radius: calc(var(--radius-md) - 4px);
+}
+.glass-tab:hover { color: var(--text-secondary); }
+.glass-tab.active {
+  background: var(--tab-active-bg);
+  color: var(--accent-blue);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.glass-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.member-card {
+  padding: 20px;
+}
+.member-card.overload {
+  border-color: rgba(239,68,68,0.3);
+}
+.member-card.unassigned {
+  border-style: dashed;
+  opacity: 0.8;
+}
 
 .member-header {
   display: flex;
@@ -389,21 +519,9 @@ onMounted(loadData);
   gap: 12px;
   margin-bottom: 16px;
 }
-.member-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: #1a1a2e;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 16px;
-}
 .member-info { flex: 1; }
-.member-name { font-weight: 600; font-size: 15px; }
-.member-role { font-size: 12px; color: #64748b; }
+.member-name { font-weight: 700; font-size: 15px; color: var(--text-primary); }
+.member-role { font-size: 12px; color: var(--text-muted); }
 
 .load-indicator {
   width: 48px;
@@ -413,11 +531,11 @@ onMounted(loadData);
   align-items: center;
   justify-content: center;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
 }
-.load-indicator.normal { background: #d1fae5; color: #065f46; }
-.load-indicator.warning { background: #fef3c7; color: #92400e; }
-.load-indicator.danger { background: #fee2e2; color: #991b1b; }
+.load-indicator.normal { background: rgba(16,185,129,0.1); color: var(--success); }
+.load-indicator.warning { background: rgba(245,158,11,0.1); color: var(--warning); }
+.load-indicator.danger { background: rgba(239,68,68,0.1); color: var(--danger); }
 
 .member-stats {
   display: grid;
@@ -428,41 +546,43 @@ onMounted(loadData);
 .mini-stat {
   text-align: center;
   padding: 8px;
-  background: #f8fafc;
-  border-radius: 6px;
+  background: var(--glass-inner-bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
 }
-.mini-stat-value { font-size: 18px; font-weight: 600; }
-.mini-stat-label { font-size: 11px; color: #64748b; margin-top: 2px; }
+.mini-stat-value { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.mini-stat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
 .task-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  margin-bottom: 12px;
 }
 .task-chip {
   font-size: 11px;
   padding: 3px 8px;
-  border-radius: 4px;
-  background: #e0e7ff;
-  color: #4338ca;
+  border-radius: 6px;
+  background: rgba(79,106,245,0.08);
+  color: var(--accent-blue);
   max-width: 140px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.task-chip.overdue { background: #fee2e2; color: #991b1b; }
+.task-chip.overdue { background: rgba(239,68,68,0.08); color: var(--danger); }
 
-.hours-bar { margin-top: 12px; }
+.hours-bar { margin-top: 4px; }
 .hours-bar-label {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #64748b;
+  color: var(--text-secondary);
   margin-bottom: 4px;
 }
 .hours-track {
   height: 6px;
-  background: #e2e8f0;
+  background: var(--progress-track);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -471,24 +591,18 @@ onMounted(loadData);
   border-radius: 3px;
   transition: width 0.3s;
 }
-.hours-fill.normal { background: #10b981; }
-.hours-fill.warning { background: #f59e0b; }
-.hours-fill.danger { background: #ef4444; }
+.hours-fill.normal { background: var(--success); }
+.hours-fill.warning { background: var(--warning); }
+.hours-fill.danger { background: var(--danger); }
 
-.chart-container {
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  padding: 24px;
-}
-.chart-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+/* Chart View */
 .bar-chart { display: flex; flex-direction: column; gap: 16px; }
 .bar-row { display: flex; align-items: center; gap: 16px; }
-.bar-label { width: 100px; text-align: right; font-size: 13px; font-weight: 500; }
+.bar-label { width: 100px; text-align: right; font-size: 13px; font-weight: 600; color: var(--text-primary); }
 .bar-track {
   flex: 1;
   height: 28px;
-  background: #f1f5f9;
+  background: var(--progress-track);
   border-radius: 6px;
   overflow: hidden;
   position: relative;
@@ -501,153 +615,96 @@ onMounted(loadData);
   padding-left: 10px;
   color: white;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   transition: width 0.5s ease;
 }
-.bar-fill.normal { background: #10b981; }
-.bar-fill.warning { background: #f59e0b; }
-.bar-fill.danger { background: #ef4444; }
-.bar-value { width: 60px; font-size: 13px; font-weight: 600; }
-.bar-detail { font-size: 12px; color: #64748b; width: 120px; }
+.bar-fill.normal { background: var(--success); }
+.bar-fill.warning { background: var(--warning); }
+.bar-fill.danger { background: var(--danger); }
+.bar-value { width: 60px; font-size: 13px; font-weight: 700; }
+.bar-detail { font-size: 12px; color: var(--text-muted); width: 120px; }
+
 .legend {
   display: flex;
   gap: 20px;
   margin-top: 20px;
   justify-content: center;
 }
-.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #64748b; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
 .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
-
-.view-tabs {
-  display: flex;
-  gap: 0;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  overflow: hidden;
-  margin-bottom: 20px;
-  width: fit-content;
-}
-.view-tabs button {
-  padding: 8px 20px;
-  border: none;
-  background: white;
-  cursor: pointer;
-  font-size: 14px;
-  color: #64748b;
-  transition: background 0.15s, color 0.15s;
-}
-.view-tabs button:hover {
-  background: #f8fafc;
-}
-.view-tabs button.active {
-  background: #1a1a2e;
-  color: white;
-}
+.legend-dot.normal { background: var(--success); }
+.legend-dot.warning { background: var(--warning); }
+.legend-dot.danger { background: var(--danger); }
 
 /* Timeline View */
-.timeline-container {
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-}
 .timeline-header {
   display: flex;
-  border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--glass-inner-bg);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 .timeline-member-col {
   width: 180px;
   padding: 10px 14px;
   font-size: 12px;
-  font-weight: 600;
-  color: #64748b;
-  border-right: 1px solid #e2e8f0;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-right: 1px solid var(--glass-border);
   flex-shrink: 0;
 }
-.timeline-dates {
-  display: flex;
-  flex: 1;
-}
+.timeline-dates { display: flex; flex: 1; }
 .timeline-date-cell {
   flex: 1;
   padding: 8px 2px;
   text-align: center;
-  border-right: 1px solid #e2e8f0;
+  border-right: 1px solid var(--glass-border);
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--text-muted);
   min-width: 36px;
 }
 .timeline-date-cell.today {
-  background: #eff6ff;
-  color: #3b82f6;
-  font-weight: 600;
+  background: rgba(79,106,245,0.06);
+  color: var(--accent-blue);
+  font-weight: 700;
 }
-.timeline-date-cell:last-child {
-  border-right: none;
-}
-.timeline-date-today {
-  font-size: 10px;
-  color: #3b82f6;
-}
+.timeline-date-cell:last-child { border-right: none; }
+.timeline-date-today { font-size: 10px; color: var(--accent-blue); }
 
-.timeline-body {
-  display: flex;
-  flex-direction: column;
-}
+.timeline-body { display: flex; flex-direction: column; }
 .timeline-row {
   display: flex;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--glass-border);
   min-height: 56px;
   align-items: center;
 }
-.timeline-row:last-child {
-  border-bottom: none;
-}
+.timeline-row:last-child { border-bottom: none; }
 .timeline-member-info {
   width: 180px;
   padding: 8px 14px;
   display: flex;
   align-items: center;
   gap: 10px;
-  border-right: 1px solid #f1f5f9;
+  border-right: 1px solid var(--glass-border);
   flex-shrink: 0;
 }
 .timeline-avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #1a1a2e;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 13px;
   flex-shrink: 0;
 }
-.timeline-member-detail {
-  flex: 1;
-  min-width: 0;
-}
-.timeline-member-name {
-  font-size: 13px;
-  font-weight: 500;
-  color: #1e293b;
-}
-.timeline-member-load {
-  font-size: 11px;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.timeline-member-load.overload {
-  color: #ef4444;
-}
-.timeline-member-load.warning {
-  color: #f59e0b;
-}
+.timeline-member-detail { flex: 1; min-width: 0; }
+.timeline-member-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.timeline-member-load { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+.timeline-member-load.overload { color: var(--danger); }
+.timeline-member-load.warning { color: var(--warning); }
 
 .timeline-track {
   flex: 1;
@@ -667,7 +724,7 @@ onMounted(loadData);
   padding: 0 6px;
   color: white;
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   cursor: pointer;
@@ -679,8 +736,12 @@ onMounted(loadData);
   transform: translateY(-50%) scale(1.02);
   z-index: 10;
 }
-.timeline-task-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
+.timeline-task-text { overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 1200px) {
+  .bento-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 768px) {
+  .bento-grid { grid-template-columns: 1fr !important; }
 }
 </style>
