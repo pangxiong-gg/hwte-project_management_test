@@ -78,7 +78,7 @@ export const userApi = {
   getMe: () => api.get<User>('/users/me'),
   create: (data: { name: string; email: string; password: string; role: string }) =>
     api.post<User>('/users', data),
-  updateMe: (data: Partial<{ name: string; password: string }>) => api.put<User>('/users/me', data),
+  updateMe: (data: Partial<{ name: string; password: string; emailNotifications: boolean }>) => api.put<User>('/users/me', data),
   update: (id: string, data: Partial<{ name: string; role: string; status: string }>) =>
     api.put<User>(`/users/${id}`, data),
   delete: (id: string) => api.delete(`/users/${id}`),
@@ -178,9 +178,9 @@ export const tagApi = {
 
 export const sprintApi = {
   getAll: (projectId: string) => api.get<{ sprints: any[] }>(`/projects/${projectId}/sprints`),
-  create: (projectId: string, data: Partial<Sprint>) =>
+  create: (projectId: string, data: Record<string, any>) =>
     api.post(`/projects/${projectId}/sprints`, data),
-  update: (projectId: string, id: string, data: Partial<Sprint>) =>
+  update: (projectId: string, id: string, data: Record<string, any>) =>
     api.put(`/projects/${projectId}/sprints/${id}`, data),
   delete: (projectId: string, id: string) => api.delete(`/projects/${projectId}/sprints/${id}`),
   getBurndown: (projectId: string, id: string) =>
