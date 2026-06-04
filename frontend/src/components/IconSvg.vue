@@ -148,6 +148,45 @@
     <template v-if="name === 'star'">
       <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z" />
     </template>
+
+    <!-- dashboard: 專案總覽 / 四宮格 -->
+    <template v-if="name === 'dashboard'">
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+    </template>
+
+    <!-- task-square: 我的任務 / 帶勾方塊 -->
+    <template v-if="name === 'task-square'">
+      <path d="M9 11l3 3l8 -8" />
+      <path d="M20 12v6a2 2 0 0 1 -2 2H6a2 2 0 0 1 -2 -2V6a2 2 0 0 1 2 -2h11" />
+    </template>
+
+    <!-- chart-bar: 資源負載 / 柱狀圖 -->
+    <template v-if="name === 'chart-bar'">
+      <path d="M18 20V10" />
+      <path d="M12 20V4" />
+      <path d="M6 20v-6" />
+    </template>
+
+    <!-- sun: 太阳/浅色主题 -->
+    <template v-if="name === 'sun'">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M3 12h1" />
+      <path d="M12 3v1" />
+      <path d="M20 12h1" />
+      <path d="M12 20v1" />
+      <path d="M5.6 5.6l.7 .7" />
+      <path d="M18.4 5.6l-.7 .7" />
+      <path d="M17.7 17.7l.7 .7" />
+      <path d="M6.3 17.7l-.7 .7" />
+    </template>
+
+    <!-- moon: 月亮/深色主题 -->
+    <template v-if="name === 'moon'">
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </template>
   </svg>
 </template>
 
