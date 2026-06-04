@@ -109,11 +109,14 @@ router.put('/:id', adminMiddleware, async (req, res) => {
   }
 });
 
-// DELETE /api/users/:id - 管理員刪除用戶
+// DELETE /api/users/:id - 管理員停用用戶（軟刪除，保留歷史數據）
 router.delete('/:id', adminMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    await prisma.user.delete({ where: { id } });
+    await prisma.user.update({
+      where: { id },
+      data: { status: 'INACTIVE' },
+    });
     res.status(204).send();
   } catch (error: any) {
     res.status(500).json({ error: error.message });
